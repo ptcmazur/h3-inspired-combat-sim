@@ -1,0 +1,553 @@
+import { useEffect, useMemo, useState } from 'react'
+import './App.css'
+import { loadBattlePresets } from './data/presets'
+import {
+  getAvailableCreatures,
+  getAvailableHeroes,
+  groupCreaturesByFaction,
+  groupHeroesByFaction,
+} from './data/selectors'
+import { t } from './i18n'
+import { simulateMany } from './simulation/duel'
+import { calculateEqualGoldStacks, calculateWeeklyGrowthStacks } from './simulation/stackPresets'
+import type {
+  BattleConfig,
+  BattleLogEntry,
+  BattlePresetPayload,
+  Creature,
+  Hero,
+  Language,
+  Ruleset,
+  SimulationSummary,
+} from './types'
+
+interface SideState {
+  creatureId: string
+  count: number
+  heroId: string
+  search: string
+}
+
+interface SidePanelProps {
+  title: string
+  language: Language
+  side: SideState
+  creatures: Creature[]
+  heroes: Hero[]
+  onChange: (side: SideState) => void
+}
+
+const factionLabels: Record<string, string> = {
+  castle: 'Castle',
+  rampart: 'Rampart',
+  tower: 'Tower',
+  inferno: 'Inferno',
+  necropolis: 'Necropolis',
+  dungeon: 'Dungeon',
+  stronghold: 'Stronghold',
+  fortress: 'Fortress',
+  conflux: 'Conflux',
+  cove: 'Cove',
+  factory: 'Factory',
+  bulwark: 'Bulwark',
+  neutral: 'Neutral',
+}
+
+function formatPercent(value: number): string {
+  return `${Math.round(value * 1000) / 10}%`
+}
+
+function formatNumber(value: number): string {
+  return value.toLocaleString(undefined, { maximumFractionDigits: 1 })
+}
+
+function creatureLabel(creature: Creature, language: Language): string {
+  const upgrade = creature.upgraded ? '+' : ''
+  return `T${creature.tier}${upgrade} ${creature.name[language]}`
+}
+
+function findRecord<T extends { id: string }>(records: T[], id: string): T {
+  return records.find((record) => record.id === id) ?? records[0]
+}
+
+function groupLogByRound(log: BattleLogEntry[]): Array<[number, BattleLogEntry[]]> {
+  const groups = new Map<number, BattleLogEntry[]>()
+
+  for (const entry of log) {
+    groups.set(entry.round, [...(groups.get(entry.round) ?? []), entry])
+  }
+
+  return [...groups.entries()]
+}
+
+function SidePanel({ title, language, side, creatures, heroes, onChange }: SidePanelProps) {
+  const selectedCreature = findRecord(creatures, side.creatureId)
+  const selectedHero = findRecord(heroes, side.heroId)
+  const filteredCreatures = creatures.filter((creature) =>
+    `${creature.name.en} ${creature.name.pl} ${creature.faction}`
+      .toLowerCase()
+      .includes(side.search.toLowerCase()),
+  )
+  const creatureGroups = groupCreaturesByFaction(filteredCreatures)
+  const heroGroups = groupHeroesByFaction(heroes)
+
+  return (
+    <section className="side-panel" aria-labelledby={`${title}-heading`}>
+      <h2 id={`${title}-heading`}>{title}</h2>
+
+      <label className="field">
+        <span>{t(language, 'creature')}</span>
+        <input
+          type="search"
+          value={side.search}
+          onChange={(event) => onChange({ ...side, search: event.target.value })}
+          placeholder="Search by name or faction"
+        />
+      </label>
+
+      <label className="field">
+        <span>{t(language, 'creature')}</span>
+        <select
+          value={selectedCreature.id}
+          onChange={(event) => onChange({ ...side, creatureId: event.target.value })}
+        >
+          {Object.entries(creatureGroups).map(([faction, group]) => (
+            <optgroup key={faction} label={factionLabels[faction] ?? faction}>
+              {group.map((creature) => (
+                <option key={creature.id} value={creature.id}>
+                  {creatureLabel(creature, language)}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+      </label>
+
+      <div className="field-row">
+        <label className="field">
+          <span>{t(language, 'quantity')}</span>
+          <input
+            min={1}
+            max={99999}
+            type="number"
+            value={side.count}
+            onChange={(event) =>
+              onChange({ ...side, count: Math.max(1, Number(event.target.value) || 1) })
+            }
+          />
+        </label>
+
+        <label className="field">
+          <span>{t(language, 'hero')}</span>
+          <select
+            value={selectedHero.id}
+            onChange={(event) => onChange({ ...side, heroId: event.target.value })}
+          >
+            {Object.entries(heroGroups).map(([faction, group]) => (
+              <optgroup key={faction} label={factionLabels[faction] ?? faction}>
+                {group.map((hero) => (
+                  <option key={hero.id} value={hero.id}>
+                    {hero.name[language]} {hero.className !== 'None' ? `(${hero.className})` : ''}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <div className="unit-summary">
+        <h3>{t(language, 'stats')}</h3>
+        <dl>
+          <div>
+            <dt>ATK</dt>
+            <dd>{selectedCreature.stats.attack + selectedHero.primary.attack}</dd>
+          </div>
+          <div>
+            <dt>DEF</dt>
+            <dd>{selectedCreature.stats.defense + selectedHero.primary.defense}</dd>
+          </div>
+          <div>
+            <dt>DMG</dt>
+            <dd>
+              {selectedCreature.stats.minDamage}-{selectedCreature.stats.maxDamage}
+            </dd>
+          </div>
+          <div>
+            <dt>HP</dt>
+            <dd>{selectedCreature.stats.health}</dd>
+          </div>
+          <div>
+            <dt>SPD</dt>
+            <dd>{selectedCreature.stats.speed}</dd>
+          </div>
+          <div>
+            <dt>Growth</dt>
+            <dd>{selectedCreature.stats.growth}</dd>
+          </div>
+          <div>
+            <dt>Cost</dt>
+            <dd>{selectedCreature.stats.cost}</dd>
+          </div>
+          <div>
+            <dt>Shots</dt>
+            <dd>{selectedCreature.shots ?? '-'}</dd>
+          </div>
+        </dl>
+
+        <div className="badges" aria-label={t(language, 'abilities')}>
+          {selectedCreature.abilities.length === 0 ? (
+            <span className="muted">None</span>
+          ) : (
+            selectedCreature.abilities.map((ability) => <span key={ability}>{ability}</span>)
+          )}
+        </div>
+
+        {selectedCreature.notes.length > 0 && (
+          <p className="notes">
+            {t(language, 'unsupported')}: {selectedCreature.notes.join(', ')}
+          </p>
+        )}
+      </div>
+    </section>
+  )
+}
+
+function Results({ language, summary }: { language: Language; summary: SimulationSummary | null }) {
+  if (!summary) return null
+
+  return (
+    <section className="results-shell" aria-labelledby="results-heading">
+      <div className="sticky-results" data-testid="sticky-results">
+        <h2 id="results-heading">{t(language, 'results')}</h2>
+        <div className="result-grid">
+          <article>
+            <h3>{t(language, 'attacker')}</h3>
+            <p className="result-number">{formatPercent(summary.sideA.winRate)}</p>
+            <dl>
+              <div>
+                <dt>{t(language, 'wins')}</dt>
+                <dd>{summary.sideA.wins}</dd>
+              </div>
+              <div>
+                <dt>{t(language, 'winRate')}</dt>
+                <dd>{formatPercent(summary.sideA.winRate)}</dd>
+              </div>
+              <div>
+                <dt>{t(language, 'averageSurvivors')}</dt>
+                <dd>{formatNumber(summary.sideA.averageSurvivors)}</dd>
+              </div>
+            </dl>
+          </article>
+
+          <article>
+            <h3>{t(language, 'defender')}</h3>
+            <p className="result-number">{formatPercent(summary.sideB.winRate)}</p>
+            <dl>
+              <div>
+                <dt>{t(language, 'wins')}</dt>
+                <dd>{summary.sideB.wins}</dd>
+              </div>
+              <div>
+                <dt>{t(language, 'winRate')}</dt>
+                <dd>{formatPercent(summary.sideB.winRate)}</dd>
+              </div>
+              <div>
+                <dt>{t(language, 'averageSurvivors')}</dt>
+                <dd>{formatNumber(summary.sideB.averageSurvivors)}</dd>
+              </div>
+            </dl>
+          </article>
+
+          <article>
+            <h3>{t(language, 'draws')}</h3>
+            <p className="result-number">{summary.draws}</p>
+            <p className="muted">{summary.total} total fights</p>
+          </article>
+        </div>
+      </div>
+
+      <details className="log-panel" open>
+        <summary>{t(language, 'sampleLog')}</summary>
+        <div className="round-log">
+          {groupLogByRound(summary.sample.log).map(([round, entries]) => (
+            <section key={round} className="round-log-section">
+              <h3>
+                {t(language, 'round')} {round}
+              </h3>
+              <ol>
+                {entries.map((entry, index) => (
+                  <li key={`${entry.round}-${entry.phase}-${index}`}>
+                    <span className={`log-phase phase-${entry.phase}`}>{entry.phase}</span>
+                    {entry.message}
+                  </li>
+                ))}
+              </ol>
+            </section>
+          ))}
+        </div>
+      </details>
+    </section>
+  )
+}
+
+export default function App() {
+  const [language, setLanguage] = useState<Language>('en')
+  const [ruleset, setRuleset] = useState<Ruleset>('hota')
+  const [simulations, setSimulations] = useState(100)
+  const [seed, setSeed] = useState(1337)
+  const [weeks, setWeeks] = useState(6)
+  const [startDistance, setStartDistance] = useState(12)
+  const creatures = useMemo(() => getAvailableCreatures(ruleset), [ruleset])
+  const heroes = useMemo(() => getAvailableHeroes(ruleset), [ruleset])
+  const [sideA, setSideA] = useState<SideState>({
+    creatureId: 'castle-pikeman',
+    count: 100,
+    heroId: 'none',
+    search: '',
+  })
+  const [sideB, setSideB] = useState<SideState>({
+    creatureId: 'inferno-imp',
+    count: 100,
+    heroId: 'none',
+    search: '',
+  })
+  const [summary, setSummary] = useState<SimulationSummary | null>(null)
+  const [presetMessage, setPresetMessage] = useState<string | null>(null)
+  const [presetPayload, setPresetPayload] = useState<BattlePresetPayload | null>(null)
+  const [selectedPresetId, setSelectedPresetId] = useState('')
+
+  useEffect(() => {
+    let active = true
+
+    loadBattlePresets().then((payload) => {
+      if (!active) return
+
+      setPresetPayload(payload)
+      setSelectedPresetId((currentId) =>
+        currentId && payload.presets.some((preset) => preset.id === currentId)
+          ? currentId
+          : (payload.presets[0]?.id ?? ''),
+      )
+    })
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const normalizedSideA = {
+    ...sideA,
+    creatureId: creatures.some((creature) => creature.id === sideA.creatureId)
+      ? sideA.creatureId
+      : creatures[0].id,
+    heroId: heroes.some((hero) => hero.id === sideA.heroId) ? sideA.heroId : 'none',
+  }
+  const normalizedSideB = {
+    ...sideB,
+    creatureId: creatures.some((creature) => creature.id === sideB.creatureId)
+      ? sideB.creatureId
+      : creatures[1].id,
+    heroId: heroes.some((hero) => hero.id === sideB.heroId) ? sideB.heroId : 'none',
+  }
+  const selectedCreatureA = findRecord(creatures, normalizedSideA.creatureId)
+  const selectedCreatureB = findRecord(creatures, normalizedSideB.creatureId)
+  const equalGoldPreview = calculateEqualGoldStacks(selectedCreatureA, selectedCreatureB, weeks)
+  const selectedPreset = presetPayload?.presets.find((preset) => preset.id === selectedPresetId)
+
+  function applyWeeklyGrowthPreset() {
+    const counts = calculateWeeklyGrowthStacks(selectedCreatureA, selectedCreatureB, weeks)
+    setSideA({ ...normalizedSideA, count: counts.sideA })
+    setSideB({ ...normalizedSideB, count: counts.sideB })
+    setPresetMessage(null)
+  }
+
+  function applyEqualGoldPreset() {
+    const result = calculateEqualGoldStacks(selectedCreatureA, selectedCreatureB, weeks)
+    if (!result.ok) {
+      setPresetMessage(t(language, 'equalGoldUnavailable'))
+      return
+    }
+
+    setSideA({ ...normalizedSideA, count: result.sideA })
+    setSideB({ ...normalizedSideB, count: result.sideB })
+    setPresetMessage(`${t(language, 'equalGoldBudget')}: ${result.budget}`)
+  }
+
+  function applyPublicPreset() {
+    if (!selectedPreset) return
+
+    setRuleset(selectedPreset.ruleset)
+    setSimulations(selectedPreset.simulationCount)
+    setWeeks(selectedPreset.weeks)
+    setStartDistance(selectedPreset.startDistance)
+    setSideA({
+      creatureId: selectedPreset.sideA.creatureId,
+      count: selectedPreset.sideA.count,
+      heroId: selectedPreset.sideA.heroId,
+      search: '',
+    })
+    setSideB({
+      creatureId: selectedPreset.sideB.creatureId,
+      count: selectedPreset.sideB.count,
+      heroId: selectedPreset.sideB.heroId,
+      search: '',
+    })
+    setSummary(null)
+    setPresetMessage(`${t(language, 'presetApplied')}: ${selectedPreset.label[language]}`)
+  }
+
+  function runSimulation() {
+    const config: BattleConfig = {
+      ruleset,
+      language,
+      simulations,
+      seed,
+      maxRounds: 100,
+      startDistance,
+      sideA: {
+        creature: selectedCreatureA,
+        count: normalizedSideA.count,
+        heroId: normalizedSideA.heroId,
+      },
+      sideB: {
+        creature: selectedCreatureB,
+        count: normalizedSideB.count,
+        heroId: normalizedSideB.heroId,
+      },
+    }
+
+    setSummary(simulateMany(config))
+  }
+
+  return (
+    <main className="app-shell">
+      <header className="app-header">
+        <div>
+          <p className="eyebrow">Heroes of Might and Magic III</p>
+          <h1>{t(language, 'title')}</h1>
+          <p>{t(language, 'subtitle')}</p>
+        </div>
+
+        <div className="toolbar" aria-label="Global controls">
+          <label>
+            <span>{t(language, 'language')}</span>
+            <select value={language} onChange={(event) => setLanguage(event.target.value as Language)}>
+              <option value="en">English</option>
+              <option value="pl">Polski</option>
+            </select>
+          </label>
+
+          <label>
+            <span>{t(language, 'ruleset')}</span>
+            <select value={ruleset} onChange={(event) => setRuleset(event.target.value as Ruleset)}>
+              <option value="complete">Complete</option>
+              <option value="hota">Horn of the Abyss</option>
+            </select>
+          </label>
+        </div>
+      </header>
+
+      <section className="config-strip" aria-label="Simulation settings">
+        <label>
+          <span>{t(language, 'simulations')}</span>
+          <input
+            min={1}
+            max={5000}
+            type="number"
+            value={simulations}
+            onChange={(event) => setSimulations(Math.max(1, Number(event.target.value) || 1))}
+          />
+        </label>
+        <label>
+          <span>{t(language, 'seed')}</span>
+          <input
+            min={0}
+            type="number"
+            value={seed}
+            onChange={(event) => setSeed(Math.max(0, Number(event.target.value) || 0))}
+          />
+        </label>
+        <label>
+          <span>{t(language, 'weeks')}</span>
+          <input
+            min={1}
+            max={52}
+            type="number"
+            value={weeks}
+            onChange={(event) => setWeeks(Math.max(1, Number(event.target.value) || 1))}
+          />
+        </label>
+        <label>
+          <span>{t(language, 'startDistance')}</span>
+          <input
+            min={0}
+            max={50}
+            type="number"
+            value={startDistance}
+            onChange={(event) => setStartDistance(Math.max(0, Number(event.target.value) || 0))}
+          />
+        </label>
+        <label className="preset-field">
+          <span>{t(language, 'publicPreset')}</span>
+          <select
+            value={selectedPresetId}
+            onChange={(event) => setSelectedPresetId(event.target.value)}
+          >
+            {(presetPayload?.presets ?? []).map((preset) => (
+              <option key={preset.id} value={preset.id}>
+                {preset.label[language]}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button type="button" onClick={applyPublicPreset} disabled={!selectedPreset}>
+          {t(language, 'applyPreset')}
+        </button>
+        <button type="button" onClick={applyWeeklyGrowthPreset}>
+          {t(language, 'setWeeklyGrowth')}
+        </button>
+        <button type="button" onClick={applyEqualGoldPreset} disabled={!equalGoldPreview.ok}>
+          {t(language, 'setEqualGold')}
+        </button>
+        <button type="button" onClick={runSimulation}>
+          {t(language, 'run')}
+        </button>
+      </section>
+
+      {(presetMessage || !equalGoldPreview.ok) && (
+        <p className="preset-message">
+          {presetMessage ?? t(language, 'equalGoldUnavailable')}
+        </p>
+      )}
+
+      <Results language={language} summary={summary} />
+
+      <div className="duel-grid">
+        <SidePanel
+          title={t(language, 'attacker')}
+          language={language}
+          side={normalizedSideA}
+          creatures={creatures}
+          heroes={heroes}
+          onChange={setSideA}
+        />
+        <SidePanel
+          title={t(language, 'defender')}
+          language={language}
+          side={normalizedSideB}
+          creatures={creatures}
+          heroes={heroes}
+          onChange={setSideB}
+        />
+      </div>
+
+      <footer>
+        <strong>{t(language, 'sources')}:</strong>{' '}
+        <a href="https://heroes.thelazy.net/index.php/List_of_creatures">creatures</a>,{' '}
+        <a href="https://heroes.thelazy.net/index.php/Heroes">heroes</a>,{' '}
+        <a href="https://heroes.thelazy.net/index.php/Damage">damage</a>. {t(language, 'hosting')}
+      </footer>
+    </main>
+  )
+}
