@@ -58,7 +58,7 @@ function normalizeAbility(text) {
   if (lower.includes('double attack') || lower.includes('attacks twice')) {
     abilities.add('doubleAttack')
   }
-  if (lower.includes('no melee') || lower.includes('no range')) {
+  if (lower.includes('no melee')) {
     abilities.add('noMeleePenalty')
   }
   if (lower.includes('flying')) abilities.add('flying')

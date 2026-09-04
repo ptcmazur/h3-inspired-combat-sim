@@ -5721,8 +5721,7 @@ export const creatures: Creature[] = [
       "cost": 400
     },
     "abilities": [
-      "ranged",
-      "noMeleePenalty"
+      "ranged"
     ],
     "notes": [
       "Ranged (32 shots)",

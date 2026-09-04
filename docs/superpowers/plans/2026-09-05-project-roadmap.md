@@ -26,7 +26,7 @@
 | ID | Priorytet | Rezultat | Zależności | Szacunek |
 | --- | --- | --- | --- | --- |
 | H3-01 | P0 | Ukończone: poprawny wynik walki przerwanej limitem | brak | 1–2 h |
-| H3-02 | P0 | Jawne i przetestowane reguły ataku/kontrataku | H3-01 | 4–8 h |
+| H3-02 | P0 | Ukończone: reguły ataku/kontrataku | H3-01 | 4–8 h |
 | H3-03 | P0 | Walidacja konfiguracji i aktualność wyników | H3-01 | 3–5 h |
 | H3-04 | P1 | Spójne dane oraz bezpieczne presety | H3-03 | 3–5 h |
 | H3-05 | P1 | Jedna opisana ścieżka wydania i CI dla PR | brak; wydanie po H3-01–04 | 3–5 h |
@@ -69,12 +69,12 @@ expect(simulateMany({ ...config, simulations: 3 }).draws).toBe(3)
 
 **Pliki:** `src/simulation/duel.ts`, `damage.ts`, ich testy, `src/types.ts`; nowy `docs/COMBAT_RULES.md`.
 
-- [ ] Zapisać tabelę reguł: strzał/wręcz, kontakt, zużycie amunicji, doubleAttack, noRetaliation, kara wręcz i noMeleePenalty. Dla szczegółów gry sprawdzić źródła i podać je w dokumencie; jawnie oznaczyć przyjęte uproszczenia 1D i pierwszeństwo A przy równej szybkości.
-- [ ] Zsyntetyzować strzelca z `slow`, `abilities: ['ranged']`, `shots: 2`, i walkę z `startDistance: 50`, `maxRounds: 1`; oczekiwać braku fazy retaliation przed kontaktem.
-- [ ] Dodać testy: zero strzał → ruch/wręcz; brak kontrataku po śmierci celu; noRetaliation nie zużywa możliwości kontrataku; maksymalnie jeden kontratak na rundę.
-- [ ] Po ustaleniu reguł sprawdzać kolejność zdarzeń dla dwóch ciosów i dwóch strzałów, także przy jednym pozostałym naboju oraz śmierci atakującego w kontrataku.
-- [ ] Rozróżnić rodzaj ataku w `performAttack` i przekazywać go do liczenia obrażeń; wdrożyć uzgodnioną sekwencję i modyfikatory. Nie implementować innych zdolności w tym zadaniu.
-- [ ] Uruchomić `npm test -- src/simulation/duel.test.ts src/simulation/damage.test.ts`.
+- [x] Zapisać tabelę reguł: strzał/wręcz, kontakt, zużycie amunicji, doubleAttack, noRetaliation, kara wręcz i noMeleePenalty. Dla szczegółów gry sprawdzić źródła i podać je w dokumencie; jawnie oznaczyć przyjęte uproszczenia 1D i pierwszeństwo A przy równej szybkości.
+- [x] Zsyntetyzować strzelca z `slow`, `abilities: ['ranged']`, `shots: 2`, i walkę z `startDistance: 50`, `maxRounds: 1`; oczekiwać braku fazy retaliation przed kontaktem.
+- [x] Dodać testy: zero strzał → ruch/wręcz; brak kontrataku po śmierci celu; noRetaliation nie zużywa możliwości kontrataku; maksymalnie jeden kontratak na rundę.
+- [x] Po ustaleniu reguł sprawdzać kolejność zdarzeń dla dwóch ciosów i dwóch strzałów, także przy jednym pozostałym naboju oraz śmierci atakującego w kontrataku.
+- [x] Rozróżnić rodzaj ataku w `performAttack` i przekazywać go do liczenia obrażeń; wdrożyć uzgodnioną sekwencję i modyfikatory. Nie implementować innych zdolności w tym zadaniu.
+- [x] Uruchomić `npm test -- src/simulation/duel.test.ts src/simulation/damage.test.ts`.
 
 **Odbiór:** każda opisana reguła ma przypadek deterministyczny; UI i dokument nie deklarują nieobsługiwanych efektów jako działających.
 

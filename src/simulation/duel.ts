@@ -93,11 +93,14 @@ function dealDamage(
   rng: RandomSource,
   log: BattleLogEntry[],
   round: number,
+  ranged = false,
   retaliating = false,
 ): void {
   const baseDamage = rollBaseDamage(attacker.stack.creature, attacker.stack.count, rng)
   const multiplier = attackDefenseMultiplier(attackValue(attacker), defenseValue(defender))
-  let damage = Math.max(1, Math.floor(baseDamage * multiplier))
+  const meleeMultiplier = !ranged && isRanged(attacker) &&
+    !attacker.stack.creature.abilities.includes('noMeleePenalty') ? 0.5 : 1
+  let damage = Math.max(1, Math.floor(baseDamage * multiplier * meleeMultiplier))
   const luck = signedLuck(attacker.hero)
   const luckRoll = rng()
 
@@ -142,20 +145,9 @@ function performAttack(
 
   registerFirstAttack(attacker, runtime, log, round)
 
-  if (runtime.distance > 0 && isRanged(attacker) && attacker.shotsLeft > 0) {
-    attacker.shotsLeft -= 1
-    logEvent(
-      log,
-      round,
-      'attack',
-      `${stackName(attacker.stack)} shoots from ${runtime.distance} steps away; ${
-        attacker.shotsLeft
-      } shots left.`,
-      attacker.id,
-    )
-  }
-
-  const attacks = attacker.stack.creature.abilities.includes('doubleAttack') ? 2 : 1
+  const ranged = runtime.distance > 0 && isRanged(attacker) && attacker.shotsLeft > 0
+  const attacks = attacker.stack.creature.abilities.includes('doubleAttack') &&
+    (ranged || !isRanged(attacker)) ? 2 : 1
   const preventsRetaliation = attacker.stack.creature.abilities.includes('noRetaliation')
 
   if (attacks > 1) {
@@ -179,13 +171,21 @@ function performAttack(
   }
 
   for (let strike = 0; strike < attacks; strike += 1) {
-    dealDamage(attacker, defender, config, rng, log, round)
+    if (ranged) {
+      if (attacker.shotsLeft <= 0) return
+      attacker.shotsLeft -= 1
+      logEvent(log, round, 'attack',
+        `${stackName(attacker.stack)} shoots from ${runtime.distance} steps away; ${attacker.shotsLeft} shots left.`,
+        attacker.id)
+    }
+    dealDamage(attacker, defender, config, rng, log, round, ranged)
     if (defender.stack.count <= 0) return
-  }
 
-  if (!preventsRetaliation && !defender.retaliatedThisRound && defender.stack.count > 0) {
-    defender.retaliatedThisRound = true
-    dealDamage(defender, attacker, config, rng, log, round, true)
+    if (!ranged && !preventsRetaliation && !defender.retaliatedThisRound) {
+      defender.retaliatedThisRound = true
+      dealDamage(defender, attacker, config, rng, log, round, false, true)
+      if (attacker.stack.count <= 0) return
+    }
   }
 }
 

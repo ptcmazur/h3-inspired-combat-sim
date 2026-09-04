@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { simulateMany, simulateOne } from './duel'
+import { creatures } from '../data/creatures'
 import type { BattleConfig, Creature } from '../types'
 
 const slow: Creature = {
@@ -50,6 +51,101 @@ const baseConfig: BattleConfig = {
   sideA: { creature: fastNoRetaliation, count: 10, heroId: 'none' },
   sideB: { creature: slow, count: 2, heroId: 'none' },
 }
+
+const shooter: Creature = {
+  ...slow,
+  id: 'shooter',
+  name: { en: 'Shooter', pl: 'Strzelec' },
+  stats: { ...slow.stats, speed: 9, minDamage: 10, maxDamage: 10, health: 1000 },
+  abilities: ['ranged', 'doubleAttack'],
+  shots: 2,
+}
+const durableTarget: Creature = {
+  ...slow,
+  stats: { ...slow.stats, health: 1000 },
+}
+
+describe('attack sequences', () => {
+  const config: BattleConfig = {
+    ...baseConfig,
+    maxRounds: 1,
+    startDistance: 50,
+    sideA: { creature: shooter, count: 1, heroId: 'none' },
+    sideB: { creature: durableTarget, count: 1, heroId: 'none' },
+  }
+
+  it('does not allow retaliation against a shot before contact', () => {
+    const battle = simulateOne(config)
+    expect(battle.log.filter(e => e.phase === 'retaliation')).toHaveLength(0)
+    expect(battle.sideA.topHealth).toBe(1000)
+  })
+
+  it.each([1, 2])('spends one ammunition per shot with %i shots available', (shots) => {
+    const battle = simulateOne({
+      ...config,
+      sideA: { ...config.sideA, creature: { ...shooter, shots } },
+      maxRounds: 2,
+    })
+    expect(battle.sideB.topHealth).toBe(1000 - 10 * shots)
+    expect(battle.log.filter(e => e.side === 'A' && e.phase === 'move')).toHaveLength(1)
+  })
+
+  it('uses a single half-strength melee strike for a blocked double shooter', () => {
+    const battle = simulateOne({ ...config, startDistance: 0 })
+    // One normal melee hit and one retaliation, each for 5.
+    expect(battle.sideB.topHealth).toBe(990)
+    expect(battle.log.filter(e => e.phase === 'doubleAttack')).toHaveLength(0)
+  })
+
+  it('does not penalize shooters with noMeleePenalty, including retaliation', () => {
+    const battle = simulateOne({
+      ...config,
+      startDistance: 0,
+      sideA: { ...config.sideA, creature: { ...shooter, abilities: ['ranged', 'noMeleePenalty'] } },
+    })
+    expect(battle.sideB.topHealth).toBe(980)
+  })
+
+  it('does not treat the Sharpshooter range exemption as a melee exemption', () => {
+    const sharpshooter = creatures.find(c => c.id === 'sharpshooter')!
+    const battle = simulateOne({
+      ...config,
+      startDistance: 0,
+      sideA: { ...config.sideA, creature: { ...shooter, abilities: sharpshooter.abilities } },
+    })
+    expect(battle.sideB.topHealth).toBe(990)
+  })
+
+  it('retaliates between melee strikes, once per side per round', () => {
+    const battle = simulateOne({
+      ...config,
+      startDistance: 0,
+      sideA: { ...config.sideA, creature: { ...shooter, abilities: ['doubleAttack'] } },
+    })
+    const hits = battle.log.filter(e => ['attack', 'retaliation'].includes(e.phase))
+    expect(hits.map(e => [e.side, e.phase])).toEqual([
+      ['A', 'attack'], ['B', 'retaliation'], ['A', 'attack'],
+      ['B', 'attack'], ['A', 'retaliation'],
+    ])
+  })
+
+  it('cancels the second strike when the attacker dies in retaliation', () => {
+    const battle = simulateOne({
+      ...config,
+      startDistance: 0,
+      sideA: { creature: { ...shooter, stats: { ...shooter.stats, health: 1 }, abilities: ['doubleAttack'] }, count: 1, heroId: 'none' },
+    })
+    expect(battle.winner).toBe('B')
+    expect(battle.sideB.topHealth).toBe(990)
+  })
+
+  it('stops attacking a defeated target without a retaliation', () => {
+    const battle = simulateOne({ ...config, sideB: { ...config.sideB, creature: slow } })
+    expect(battle.winner).toBe('A')
+    expect(battle.log.filter(e => e.phase === 'retaliation')).toHaveLength(0)
+    expect(battle.log.filter(e => e.message.includes('shoots'))).toHaveLength(1)
+  })
+})
 
 describe('duel simulation', () => {
   const roundLimitedConfig: BattleConfig = {
