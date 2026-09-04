@@ -87,7 +87,7 @@ describe('App', () => {
     const user = userEvent.setup()
     render(<App />)
     await user.click(screen.getByRole('button', { name: /run simulation/i }))
-    fireEvent.change(screen.getAllByRole(role, { name, exact: true })[0], { target: { value } })
+    fireEvent.change(screen.getAllByRole(role, { name })[0], { target: { value } })
     expect(screen.queryByTestId('sticky-results')).not.toBeInTheDocument()
   })
 
