@@ -9,6 +9,8 @@ import {
 } from './data/selectors'
 import { t } from './i18n'
 import { simulateMany } from './simulation/duel'
+import { NumberInput } from './components/NumberInput'
+import { isValidNumber, numberError, validateBattleConfig } from './simulation/validation'
 import { calculateEqualGoldStacks, calculateWeeklyGrowthStacks } from './simulation/stackPresets'
 import type {
   BattleConfig,
@@ -126,14 +128,10 @@ function SidePanel({ title, language, side, creatures, heroes, onChange }: SideP
       <div className="field-row">
         <label className="field">
           <span>{t(language, 'quantity')}</span>
-          <input
-            min={1}
-            max={99999}
-            type="number"
+          <NumberInput
+            field="count"
             value={side.count}
-            onChange={(event) =>
-              onChange({ ...side, count: Math.max(1, Number(event.target.value) || 1) })
-            }
+            onChange={count => onChange({ ...side, count })}
           />
         </label>
 
@@ -355,14 +353,27 @@ export default function App() {
   const equalGoldPreview = calculateEqualGoldStacks(selectedCreatureA, selectedCreatureB, weeks)
   const selectedPreset = presetPayload?.presets.find((preset) => preset.id === selectedPresetId)
 
+  function updateSideA(next: SideState) {
+    if (next.count !== sideA.count || next.creatureId !== sideA.creatureId || next.heroId !== sideA.heroId) setSummary(null)
+    setSideA(next)
+  }
+
+  function updateSideB(next: SideState) {
+    if (next.count !== sideB.count || next.creatureId !== sideB.creatureId || next.heroId !== sideB.heroId) setSummary(null)
+    setSideB(next)
+  }
+
   function applyWeeklyGrowthPreset() {
+    if (!isValidNumber(weeks, 'weeks')) return
     const counts = calculateWeeklyGrowthStacks(selectedCreatureA, selectedCreatureB, weeks)
     setSideA({ ...normalizedSideA, count: counts.sideA })
     setSideB({ ...normalizedSideB, count: counts.sideB })
     setPresetMessage(null)
+    setSummary(null)
   }
 
   function applyEqualGoldPreset() {
+    if (!isValidNumber(weeks, 'weeks')) return
     const result = calculateEqualGoldStacks(selectedCreatureA, selectedCreatureB, weeks)
     if (!result.ok) {
       setPresetMessage(t(language, 'equalGoldUnavailable'))
@@ -372,6 +383,7 @@ export default function App() {
     setSideA({ ...normalizedSideA, count: result.sideA })
     setSideB({ ...normalizedSideB, count: result.sideB })
     setPresetMessage(`${t(language, 'equalGoldBudget')}: ${result.budget}`)
+    setSummary(null)
   }
 
   function applyPublicPreset() {
@@ -397,8 +409,7 @@ export default function App() {
     setPresetMessage(`${t(language, 'presetApplied')}: ${selectedPreset.label[language]}`)
   }
 
-  function runSimulation() {
-    const config: BattleConfig = {
+  const config: BattleConfig = {
       ruleset,
       language,
       simulations,
@@ -415,8 +426,12 @@ export default function App() {
         count: normalizedSideB.count,
         heroId: normalizedSideB.heroId,
       },
-    }
+  }
+  const weeksError = numberError(weeks, 'weeks', language)
+  const validationErrors = [...validateBattleConfig(config), ...(weeksError ? [weeksError] : [])]
 
+  function runSimulation() {
+    if (validationErrors.length) return
     setSummary(simulateMany(config))
   }
 
@@ -440,7 +455,7 @@ export default function App() {
 
           <label>
             <span>{t(language, 'ruleset')}</span>
-            <select value={ruleset} onChange={(event) => setRuleset(event.target.value as Ruleset)}>
+            <select value={ruleset} onChange={(event) => { setRuleset(event.target.value as Ruleset); setSummary(null) }}>
               <option value="complete">Complete</option>
               <option value="hota">Horn of the Abyss</option>
             </select>
@@ -451,41 +466,34 @@ export default function App() {
       <section className="config-strip" aria-label="Simulation settings">
         <label>
           <span>{t(language, 'simulations')}</span>
-          <input
-            min={1}
-            max={5000}
-            type="number"
+          <NumberInput
+            field="simulations"
             value={simulations}
-            onChange={(event) => setSimulations(Math.max(1, Number(event.target.value) || 1))}
+            onChange={value => { setSimulations(value); setSummary(null) }}
           />
         </label>
         <label>
           <span>{t(language, 'seed')}</span>
-          <input
-            min={0}
-            type="number"
+          <NumberInput
+            field="seed"
             value={seed}
-            onChange={(event) => setSeed(Math.max(0, Number(event.target.value) || 0))}
+            onChange={value => { setSeed(value); setSummary(null) }}
           />
         </label>
         <label>
           <span>{t(language, 'weeks')}</span>
-          <input
-            min={1}
-            max={52}
-            type="number"
+          <NumberInput
+            field="weeks"
             value={weeks}
-            onChange={(event) => setWeeks(Math.max(1, Number(event.target.value) || 1))}
+            onChange={value => { setWeeks(value); setSummary(null) }}
           />
         </label>
         <label>
           <span>{t(language, 'startDistance')}</span>
-          <input
-            min={0}
-            max={50}
-            type="number"
+          <NumberInput
+            field="startDistance"
             value={startDistance}
-            onChange={(event) => setStartDistance(Math.max(0, Number(event.target.value) || 0))}
+            onChange={value => { setStartDistance(value); setSummary(null) }}
           />
         </label>
         <label className="preset-field">
@@ -504,16 +512,20 @@ export default function App() {
         <button type="button" onClick={applyPublicPreset} disabled={!selectedPreset}>
           {t(language, 'applyPreset')}
         </button>
-        <button type="button" onClick={applyWeeklyGrowthPreset}>
+        <button type="button" onClick={applyWeeklyGrowthPreset} disabled={!!weeksError}>
           {t(language, 'setWeeklyGrowth')}
         </button>
-        <button type="button" onClick={applyEqualGoldPreset} disabled={!equalGoldPreview.ok}>
+        <button type="button" onClick={applyEqualGoldPreset} disabled={!equalGoldPreview.ok || !!weeksError}>
           {t(language, 'setEqualGold')}
         </button>
-        <button type="button" onClick={runSimulation}>
+        <button type="button" onClick={runSimulation} disabled={validationErrors.length > 0}>
           {t(language, 'run')}
         </button>
       </section>
+
+      {validationErrors.length > 0 && <div role="alert" className="validation-errors">
+        <ul>{validationErrors.map(error => <li key={error}>{error}</li>)}</ul>
+      </div>}
 
       {(presetMessage || !equalGoldPreview.ok) && (
         <p className="preset-message">
@@ -530,7 +542,7 @@ export default function App() {
           side={normalizedSideA}
           creatures={creatures}
           heroes={heroes}
-          onChange={setSideA}
+          onChange={updateSideA}
         />
         <SidePanel
           title={t(language, 'defender')}
@@ -538,7 +550,7 @@ export default function App() {
           side={normalizedSideB}
           creatures={creatures}
           heroes={heroes}
-          onChange={setSideB}
+          onChange={updateSideB}
         />
       </div>
 

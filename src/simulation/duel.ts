@@ -18,6 +18,7 @@ import {
   rollBaseDamage,
 } from './damage'
 import { createSeededRandom, type RandomSource } from './rng'
+import { assertBattleConfig } from './validation'
 
 interface RuntimeSide {
   id: BattleSideId
@@ -241,6 +242,11 @@ function moraleExtraTurn(side: RuntimeSide, rng: RandomSource): boolean {
 }
 
 export function simulateOne(config: BattleConfig): BattleResult {
+  assertBattleConfig(config)
+  return simulateValidated(config)
+}
+
+function simulateValidated(config: BattleConfig): BattleResult {
   const rng = createSeededRandom(config.seed)
   const sideA: RuntimeSide = {
     id: 'A',
@@ -321,6 +327,7 @@ export function simulateOne(config: BattleConfig): BattleResult {
 }
 
 export function simulateMany(config: BattleConfig): SimulationSummary {
+  assertBattleConfig(config)
   let sideAWins = 0
   let sideBWins = 0
   let draws = 0
@@ -329,7 +336,7 @@ export function simulateMany(config: BattleConfig): SimulationSummary {
   let sample: BattleResult | undefined
 
   for (let index = 0; index < config.simulations; index += 1) {
-    const result = simulateOne({ ...config, seed: config.seed + index })
+    const result = simulateValidated({ ...config, seed: config.seed + index })
     sample ??= result
 
     if (result.winner === 'A') sideAWins += 1

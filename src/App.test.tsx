@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
@@ -38,6 +38,66 @@ const publicPresetPayload = {
 describe('App', () => {
   afterEach(() => {
     vi.unstubAllGlobals()
+  })
+
+  it.each([0, 1.5, 5001])('blocks invalid simulation count %s with an explanation', value => {
+    render(<App />)
+    fireEvent.change(screen.getByRole('spinbutton', { name: /simulations/i }), { target: { value } })
+    expect(screen.getByRole('button', { name: /run simulation/i })).toBeDisabled()
+    expect(screen.getByRole('alert')).toHaveTextContent(/5000/)
+  })
+
+  it('allows clearing and correcting a numeric input', () => {
+    render(<App />)
+    const input = screen.getByRole('spinbutton', { name: /simulations/i })
+    fireEvent.change(input, { target: { value: '' } })
+    expect(input).toHaveValue(null)
+    expect(screen.getByRole('button', { name: /run simulation/i })).toBeDisabled()
+    fireEvent.change(input, { target: { value: '100' } })
+    expect(screen.getByRole('button', { name: /run simulation/i })).toBeEnabled()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('removes results after a combat edit but keeps them when searching or changing language', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: /run simulation/i }))
+    fireEvent.change(screen.getAllByRole('searchbox')[0], { target: { value: 'Pikeman' } })
+    expect(screen.getByTestId('sticky-results')).toBeInTheDocument()
+    await user.selectOptions(screen.getByLabelText(/language/i), 'pl')
+    expect(screen.getByTestId('sticky-results')).toBeInTheDocument()
+    fireEvent.change(screen.getAllByRole('spinbutton', { name: /liczebno/i })[0], { target: { value: '3' } })
+    expect(screen.queryByTestId('sticky-results')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /uruchom/i }))
+    expect(screen.getByTestId('sticky-results')).toBeInTheDocument()
+  })
+
+  it('removes previous results after a growth preset is applied', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: /run simulation/i }))
+    await user.click(screen.getByRole('button', { name: /set by weekly growth/i }))
+    expect(screen.queryByTestId('sticky-results')).not.toBeInTheDocument()
+  })
+
+  it.each([
+    ['spinbutton', 'Seed', '7'], ['spinbutton', 'Start distance', '5'],
+    ['combobox', 'Ruleset', 'complete'], ['combobox', 'Hero', 'knight-orrin'],
+  ])('removes previous results when %s %s changes', async (role, name, value) => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: /run simulation/i }))
+    fireEvent.change(screen.getAllByRole(role, { name, exact: true })[0], { target: { value } })
+    expect(screen.queryByTestId('sticky-results')).not.toBeInTheDocument()
+  })
+
+  it('explains an invalid quantity in Polish', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.selectOptions(screen.getByLabelText(/language/i), 'pl')
+    fireEvent.change(screen.getAllByRole('spinbutton', { name: /liczebno/i })[0], { target: { value: '100000' } })
+    expect(screen.getByRole('alert')).toHaveTextContent(/Liczebność: wpisz liczbę całkowitą/)
+    expect(screen.getByRole('button', { name: /uruchom/i })).toBeDisabled()
   })
 
   it('starts with 100 simulations and exposes both combat sides', () => {

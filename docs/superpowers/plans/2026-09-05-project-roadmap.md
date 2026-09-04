@@ -27,7 +27,7 @@
 | --- | --- | --- | --- | --- |
 | H3-01 | P0 | Ukończone: poprawny wynik walki przerwanej limitem | brak | 1–2 h |
 | H3-02 | P0 | Ukończone: reguły ataku/kontrataku | H3-01 | 4–8 h |
-| H3-03 | P0 | Walidacja konfiguracji i aktualność wyników | H3-01 | 3–5 h |
+| H3-03 | P0 | Ukończone: walidacja i aktualność wyników | H3-01 | 3–5 h |
 | H3-04 | P1 | Spójne dane oraz bezpieczne presety | H3-03 | 3–5 h |
 | H3-05 | P1 | Jedna opisana ścieżka wydania i CI dla PR | brak; wydanie po H3-01–04 | 3–5 h |
 | H3-06 | P1 | Powtarzalne generowanie danych | H3-04 | 4–8 h |
@@ -82,12 +82,12 @@ expect(simulateMany({ ...config, simulations: 3 }).draws).toBe(3)
 
 **Pliki:** nowe `src/simulation/validation.ts` i `validation.test.ts`; zmiany `duel.ts`, `App.tsx`, `App.test.tsx`, `i18n.ts`.
 
-- [ ] Ustalić wspólne limity: całkowite simulations 1–5000, count 1–99999, weeks 1–52, startDistance 0–50, maxRounds 1–100; seed jako nieujemna bezpieczna liczba całkowita. To proponowane limity MVP, oparte na aktualnym UI.
-- [ ] Utworzyć `validateBattleConfig(config: BattleConfig): string[]`; sprawdzać także finitywność liczb oraz ID bohatera i dostępność obu stron w rulesecie.
-- [ ] Testować 0, -1, 1.5, NaN, Infinity i wartości ponad limit. Silnik odrzuca niepoprawną konfigurację przed rozpoczęciem pętli, UI pokazuje komunikat PL/EN.
-- [ ] Czyścić wynik przy zmianie parametrów wpływających na walkę, także przez przyrost i equal-gold. Zmiana języka i tekstu wyszukiwania nie zmienia wyniku.
-- [ ] Test UI: uruchom walkę → zmień liczebność → poprzednie wyniki znikają → ponów → nowy wynik jest widoczny.
-- [ ] Uruchomić testy walidacji, silnika i `src/App.test.tsx`.
+- [x] Ustalić wspólne limity: całkowite simulations 1–5000, count 1–99999, weeks 1–52, startDistance 0–50, maxRounds 1–100; seed jako liczba całkowita 0–4294967295, zgodnie z 32-bitowym RNG. To proponowane limity MVP, oparte na aktualnym UI.
+- [x] Utworzyć `validateBattleConfig(config: BattleConfig): string[]`; sprawdzać także finitywność liczb oraz ID bohatera i dostępność obu stron w rulesecie.
+- [x] Testować 0, -1, 1.5, NaN, Infinity i wartości ponad limit. Silnik odrzuca niepoprawną konfigurację przed rozpoczęciem pętli, UI pokazuje komunikat PL/EN.
+- [x] Czyścić wynik przy zmianie parametrów wpływających na walkę, także przez przyrost i equal-gold. Zmiana języka i tekstu wyszukiwania nie zmienia wyniku.
+- [x] Test UI: uruchom walkę → zmień liczebność → poprzednie wyniki znikają → ponów → nowy wynik jest widoczny.
+- [x] Uruchomić testy walidacji, silnika i `src/App.test.tsx`.
 
 **Odbiór:** wejście nie omija limitów, liczba wykonanych prób odpowiada total, ekran nie przypisuje starych wyników nowym parametrom.
 

@@ -141,6 +141,19 @@ button:disabled {
   font-weight: 700;
 }
 
+.validation-errors {
+  width: min(1440px, 100%);
+  margin: 12px auto;
+  padding: 12px;
+  color: #8c2020;
+  background: #fff1f1;
+  border: 1px solid #c76868;
+  border-radius: 8px;
+}
+
+.validation-errors ul { margin: 0; padding-left: 20px; }
+input[aria-invalid="true"] { border-color: #a52c2c; }
+
 .duel-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
