@@ -61,3 +61,7 @@ Przepływ danych: katalog/presety → stan w `App` → `BattleConfig` → `simul
 Zielone testy potwierdzają obecne przypadki testowe, nie pełną poprawność reguł walki. Regresje wskazane wyżej trzeba objąć nowymi przypadkami podczas realizacji planu.
 
 Plan i zadania: [plan pracy](superpowers/plans/2026-09-05-project-roadmap.md).
+
+## Aktualizacja po realizacji trzech kolejnych kroków
+
+Naprawiono sekwencję ataków i strzelanie, dodano walidację wejścia oraz powiązanie wyniku z bieżącą konfiguracją. Log zawiera strukturalne dane obrażeń, tłumaczenie PL/EN i rozwijane szczegóły. Układ sprawdzono w przeglądarce przy 360, 768 i 1280 px. Bieżący zestaw ma 77 testów. Historyczna lista ustaleń wyżej nie jest listą nadal otwartych błędów — aktualny stan jest w planie pracy.

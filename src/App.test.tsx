@@ -157,6 +157,19 @@ describe('App', () => {
     expect(screen.getAllByText(/moves/i).length).toBeGreaterThan(0)
   })
 
+  it('translates the existing battle log and exposes damage explanations', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: /apply preset/i }))
+    await user.click(screen.getByRole('button', { name: /run simulation/i }))
+    await user.selectOptions(screen.getByLabelText(/language/i), 'pl')
+    expect(screen.getByText(/Zastosowano preset/)).toBeInTheDocument()
+    expect(screen.getAllByText(/przesuwa się/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Kolejność ruchów/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Jak policzono obrażenia/).length).toBeGreaterThan(0)
+    expect(screen.getByText(/jedną walkę z serii/i)).toBeInTheDocument()
+  })
+
   it('loads a public preset and applies it to both combat sides', async () => {
     const user = userEvent.setup()
     vi.stubGlobal(

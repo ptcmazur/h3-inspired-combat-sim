@@ -120,6 +120,33 @@ export interface BattleLogEntry {
   side?: BattleSideId
   phase: BattleLogPhase
   message: string
+  data?: BattleLogData
+}
+
+export interface DamageBreakdown {
+  kind: 'melee' | 'ranged'
+  base: number
+  attack: number
+  defense: number
+  attackMultiplier: number
+  meleeMultiplier: number
+  luckMultiplier: number
+  luckRoll: number
+  luckChance: number
+  amount: number
+  killed: number
+  remaining: number
+}
+
+export interface BattleLogData {
+  actor?: LocalizedText
+  target?: LocalizedText
+  targetSide?: BattleSideId
+  order?: Array<{ side: BattleSideId; name: LocalizedText }>
+  steps?: number
+  distance?: number
+  shotsLeft?: number
+  damage?: DamageBreakdown
 }
 
 export interface BattleResult {

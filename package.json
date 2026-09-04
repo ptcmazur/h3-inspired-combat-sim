@@ -12,7 +12,8 @@
     "deploy:firebase": "npm run build && npx firebase-tools deploy --only hosting",
     "serve:firebase": "npm run build && npx firebase-tools emulators:start --only hosting",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:smoke": "node scripts/smoke-ui.mjs"
   },
   "dependencies": {
     "react": "^19.2.6",

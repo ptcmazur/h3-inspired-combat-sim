@@ -24,3 +24,7 @@ The 1D distance is not a hex radius: range/obstacle penalties, battlefield posit
 ## Input limits
 
 The engine rejects non-integer, non-finite and out-of-range input before simulation: 1–5000 simulations, 1–99999 creatures per stack, 1–100 rounds, distance 0–50, and seed 0–4294967295 (32-bit RNG). Growth controls accept 1–52 weeks. Unknown heroes and ruleset-incompatible selections are rejected. Editing combat parameters clears the previous result; searching and switching language preserve it.
+
+## Reading results
+
+Win rates refer to the whole batch. The log shows only the first seeded fight. Every damage event exposes base damage, effective attack/defense, attack-defense and melee multipliers, rounding, luck roll/chance/multiplier, final damage, killed units and survivors. Switching PL/EN translates structured events without replaying the simulation. Rounds and damage calculations can be expanded independently.

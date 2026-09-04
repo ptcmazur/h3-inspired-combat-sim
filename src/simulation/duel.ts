@@ -1,6 +1,7 @@
 import type {
   BattleConfig,
   BattleLogEntry,
+  BattleLogData,
   BattleLogPhase,
   BattleResult,
   BattleSideId,
@@ -75,8 +76,9 @@ function logEvent(
   phase: BattleLogPhase,
   message: string,
   side?: BattleSideId,
+  data?: BattleLogData,
 ): void {
-  log.push({ round, phase, message, ...(side ? { side } : {}) })
+  log.push({ round, phase, message, ...(side ? { side } : {}), ...(data ? { data } : {}) })
 }
 
 function isRanged(side: RuntimeSide): boolean {
@@ -104,12 +106,16 @@ function dealDamage(
   let damage = Math.max(1, Math.floor(baseDamage * multiplier * meleeMultiplier))
   const luck = signedLuck(attacker.hero)
   const luckRoll = rng()
+  const chance = luckChance(luck, config.ruleset)
+  const lucky = luck > 0 && luckRoll < chance
 
-  if (luck > 0 && luckRoll < luckChance(luck, config.ruleset)) {
+  if (lucky) {
     damage *= 2
-    logEvent(log, round, 'luck', `${stackName(attacker.stack)} lands lucky damage.`, attacker.id)
+    logEvent(log, round, 'luck', `${stackName(attacker.stack)} lands lucky damage.`, attacker.id,
+      { actor: attacker.stack.creature.name })
   }
 
+  const previousCount = defender.stack.count
   defender.stack = applyDamageToStack(defender.stack, damage)
   logEvent(
     log,
@@ -119,6 +125,18 @@ function dealDamage(
       defender.stack,
     )} for ${damage} damage; ${defender.stack.count} remain.`,
     attacker.id,
+    {
+      actor: attacker.stack.creature.name,
+      target: defender.stack.creature.name,
+      targetSide: defender.id,
+      damage: {
+        kind: ranged ? 'ranged' : 'melee', base: baseDamage,
+        attack: attackValue(attacker), defense: defenseValue(defender),
+        attackMultiplier: multiplier, meleeMultiplier, luckMultiplier: lucky ? 2 : 1,
+        luckRoll, luckChance: chance, amount: damage,
+        killed: previousCount - defender.stack.count, remaining: defender.stack.count,
+      },
+    },
   )
 }
 
@@ -130,7 +148,8 @@ function registerFirstAttack(
 ): void {
   if (runtime.firstAttacker) return
   runtime.firstAttacker = attacker.id
-  logEvent(log, round, 'firstAttack', `${stackName(attacker.stack)} attacks first.`, attacker.id)
+  logEvent(log, round, 'firstAttack', `${stackName(attacker.stack)} attacks first.`, attacker.id,
+    { actor: attacker.stack.creature.name })
 }
 
 function performAttack(
@@ -158,6 +177,7 @@ function performAttack(
       'doubleAttack',
       `${stackName(attacker.stack)} uses double attack.`,
       attacker.id,
+      { actor: attacker.stack.creature.name },
     )
   }
 
@@ -168,6 +188,7 @@ function performAttack(
       'noRetaliation',
       `${stackName(attacker.stack)} prevents retaliation.`,
       attacker.id,
+      { actor: attacker.stack.creature.name },
     )
   }
 
@@ -177,7 +198,7 @@ function performAttack(
       attacker.shotsLeft -= 1
       logEvent(log, round, 'attack',
         `${stackName(attacker.stack)} shoots from ${runtime.distance} steps away; ${attacker.shotsLeft} shots left.`,
-        attacker.id)
+        attacker.id, { actor: attacker.stack.creature.name, distance: runtime.distance, shotsLeft: attacker.shotsLeft })
     }
     dealDamage(attacker, defender, config, rng, log, round, ranged)
     if (defender.stack.count <= 0) return
@@ -206,6 +227,7 @@ function moveTowardOpponent(
     'move',
     `${stackName(side.stack)} moves ${steps} steps; ${runtime.distance} left to opponent.`,
     side.id,
+    { actor: side.stack.creature.name, steps, distance: runtime.distance },
   )
 }
 
@@ -285,6 +307,8 @@ function simulateValidated(config: BattleConfig): BattleResult {
       rounds,
       'roundStart',
       `Round ${rounds} starts. Turn order: ${order.map(sideLabel).join(', ')}.`,
+      undefined,
+      { order: order.map(side => ({ side: side.id, name: side.stack.creature.name })) },
     )
 
     for (const active of order) {
@@ -299,13 +323,15 @@ function simulateValidated(config: BattleConfig): BattleResult {
           'morale',
           `${stackName(active.stack)} receives good morale and acts again.`,
           active.id,
+          { actor: active.stack.creature.name },
         )
         performTurn(active, target, config, rng, log, rounds, runtime)
         if (target.stack.count <= 0 || active.stack.count <= 0) break
       }
     }
 
-    logEvent(log, rounds, 'roundEnd', `Round ${rounds} ends at ${runtime.distance} distance.`)
+    logEvent(log, rounds, 'roundEnd', `Round ${rounds} ends at ${runtime.distance} distance.`,
+      undefined, { distance: runtime.distance })
   }
 
   const winner =

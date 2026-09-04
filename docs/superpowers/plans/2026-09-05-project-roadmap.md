@@ -31,9 +31,9 @@
 | H3-04 | P1 | Spójne dane oraz bezpieczne presety | H3-03 | 3–5 h |
 | H3-05 | P1 | Jedna opisana ścieżka wydania i CI dla PR | brak; wydanie po H3-01–04 | 3–5 h |
 | H3-06 | P1 | Powtarzalne generowanie danych | H3-04 | 4–8 h |
-| H3-07 | P1 | Czytelny log PL/EN z wyliczeniem obrażeń | H3-02 | 4–7 h |
+| H3-07 | P1 | Ukończone: log PL/EN z wyliczeniem obrażeń | H3-02 | 4–7 h |
 | H3-08 | P1 | Responsywne obliczenia dużych serii | H3-03, H3-07 | 4–8 h |
-| H3-09 | P2 | Wygodne porównania na telefonie i presety | H3-04, H3-07 | 3–6 h |
+| H3-09 | P2 | Mobile ukończone; rozbudowa presetów pozostaje | H3-04, H3-07 | 3–6 h |
 | H3-10 | P2 | Link odtwarzający konfigurację walki | H3-03, H3-06 | 3–5 h |
 | H3-11 | P2 | Jawne ustawienia bohatera, morale i luck | H3-02, H3-03, H3-07 | 5–8 h |
 | H3-12 | P1 | Zweryfikowany kandydat do wydania | zakres wybranego wydania | 2–4 h |
@@ -136,10 +136,10 @@ expect(simulateMany({ ...config, simulations: 3 }).draws).toBe(3)
 
 **Pliki:** `src/types.ts`, `src/simulation/duel.ts`, `damage.ts`, testy silnika; nowe `src/components/BattleLog.tsx`, `src/simulation/logFormatting.ts`, `logFormatting.test.ts`; zmiany `App.tsx`, `i18n.ts`.
 
-- [ ] Rozszerzyć zdarzenia o dane potrzebne do wyjaśnienia wyniku: rodzaj ataku, bazowe obrażenia, ATK/DEF, zastosowane mnożniki, wynik rzutu luck, końcowe obrażenia i straty.
-- [ ] Renderować tekst PL/EN poza silnikiem; log nie zmienia losowania ani wyniku po zmianie języka.
-- [ ] Przenieść renderowanie rund do `BattleLog.tsx`; zachować zwijane sekcje i wyraźny opis, że log przedstawia jedną próbkę z serii.
-- [ ] Testować dokładny rozkład obrażeń dla jednostek ze stałymi statystykami oraz zmianę języka bez ponownej symulacji.
+- [x] Rozszerzyć zdarzenia o dane potrzebne do wyjaśnienia wyniku: rodzaj ataku, bazowe obrażenia, ATK/DEF, zastosowane mnożniki, wynik rzutu luck, końcowe obrażenia i straty.
+- [x] Renderować tekst PL/EN poza silnikiem; log nie zmienia losowania ani wyniku po zmianie języka.
+- [x] Przenieść renderowanie rund do `BattleLog.tsx`; zachować zwijane sekcje i wyraźny opis, że log przedstawia jedną próbkę z serii.
+- [x] Testować dokładny rozkład obrażeń dla jednostek ze stałymi statystykami oraz zmianę języka bez ponownej symulacji.
 
 **Odbiór:** użytkownik potrafi odtworzyć końcowe obrażenia z widocznych wartości; log i etykiety faz działają po polsku i angielsku.
 
@@ -207,3 +207,11 @@ expect(simulateMany({ ...config, simulations: 3 }).draws).toBe(3)
 ## Pierwszy pakiet do wykonania
 
 Rozpocząć od H3-01, następnie H3-02 i H3-03. H3-04 oraz H3-05 zamykają przygotowanie pierwszego stabilizacyjnego wydania; wtedy wykonać H3-12. Zadania H3-06–11 można dostarczać w kolejnych małych wydaniach. Nie wiązać naprawy wyników z ukończeniem całego backlogu.
+
+## Realizacja kolejnych trzech kroków — 2026-09-05
+
+1. H3-02: strzelanie, zużycie amunicji, kontrataki między ciosami, kara wręcz oraz korekta Sharpshootera — wykonane.
+2. H3-03: wspólna walidacja formularza/silnika i usuwanie nieaktualnych wyników — wykonane.
+3. H3-07 i zakres mobilny H3-09: log PL/EN ze stratami i rozwijanym wyliczeniem obrażeń, zwijane rundy, informacja o pojedynczej próbce, kompaktowe wyniki na telefonie, opis presetu — wykonane. Podział wszystkich paneli na komponenty i rozszerzenie katalogu/filtrów presetów pozostają poza tym pakietem.
+
+Weryfikacja lokalna: 77 testów, lint, build:pages oraz test przeglądarkowy dla 360/768/1280 px. Skrypt scripts/smoke-ui.mjs pozwala odtworzyć test dla lokalnej lub publicznej strony. Dalsza rekomendacja: integralność katalogu i presetów (H3-04), potem bezpieczny generator (H3-06) i przeniesienie dużych serii do Web Workera (H3-08).

@@ -43,6 +43,10 @@ npm run preview -- --base=/h3-inspired-combat-sim/
 
 Open `http://localhost:4173/h3-inspired-combat-sim/`.
 
+For browser verification, start the preview with `npm run preview -- --host 127.0.0.1 --port 4176 --base=/h3-inspired-combat-sim/`, then run `npm run test:smoke` in another terminal. The check covers 360/768/1280 px layouts, presets, simulation, Polish logs, damage explanations, validation and keyboard activation. It uses installed Microsoft Edge on Windows; elsewhere install Playwright Chromium with `npx playwright install chromium` first. Pass a different URL with `npm run test:smoke -- https://ptcmazur.github.io/h3-inspired-combat-sim/`.
+
+Implemented rules and current limitations: [combat rules](docs/COMBAT_RULES.md).
+
 Firebase remains an optional manual target. Its workflow requires `FIREBASE_PROJECT_ID` and `FIREBASE_SERVICE_ACCOUNT`; local deployment is available through `npm run deploy:firebase` after selecting and authenticating a Firebase project.
 
 The simulator is an early MVP with simplified combat rules; see the in-app notes on unsupported creature abilities.

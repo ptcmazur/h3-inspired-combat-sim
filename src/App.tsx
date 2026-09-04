@@ -7,18 +7,19 @@ import {
   groupCreaturesByFaction,
   groupHeroesByFaction,
 } from './data/selectors'
-import { t } from './i18n'
+import { abilityLabel, t } from './i18n'
 import { simulateMany } from './simulation/duel'
 import { NumberInput } from './components/NumberInput'
+import { BattleLog } from './components/BattleLog'
 import { isValidNumber, numberError, validateBattleConfig } from './simulation/validation'
 import { calculateEqualGoldStacks, calculateWeeklyGrowthStacks } from './simulation/stackPresets'
 import type {
   BattleConfig,
-  BattleLogEntry,
   BattlePresetPayload,
   Creature,
   Hero,
   Language,
+  LocalizedText,
   Ruleset,
   SimulationSummary,
 } from './types'
@@ -72,16 +73,6 @@ function findRecord<T extends { id: string }>(records: T[], id: string): T {
   return records.find((record) => record.id === id) ?? records[0]
 }
 
-function groupLogByRound(log: BattleLogEntry[]): Array<[number, BattleLogEntry[]]> {
-  const groups = new Map<number, BattleLogEntry[]>()
-
-  for (const entry of log) {
-    groups.set(entry.round, [...(groups.get(entry.round) ?? []), entry])
-  }
-
-  return [...groups.entries()]
-}
-
 function SidePanel({ title, language, side, creatures, heroes, onChange }: SidePanelProps) {
   const selectedCreature = findRecord(creatures, side.creatureId)
   const selectedHero = findRecord(heroes, side.heroId)
@@ -103,7 +94,7 @@ function SidePanel({ title, language, side, creatures, heroes, onChange }: SideP
           type="search"
           value={side.search}
           onChange={(event) => onChange({ ...side, search: event.target.value })}
-          placeholder="Search by name or faction"
+          placeholder={t(language, 'search')}
         />
       </label>
 
@@ -180,31 +171,34 @@ function SidePanel({ title, language, side, creatures, heroes, onChange }: SideP
             <dd>{selectedCreature.stats.speed}</dd>
           </div>
           <div>
-            <dt>Growth</dt>
+            <dt>{t(language, 'growth')}</dt>
             <dd>{selectedCreature.stats.growth}</dd>
           </div>
           <div>
-            <dt>Cost</dt>
+            <dt>{t(language, 'cost')}</dt>
             <dd>{selectedCreature.stats.cost}</dd>
           </div>
           <div>
-            <dt>Shots</dt>
+            <dt>{t(language, 'shots')}</dt>
             <dd>{selectedCreature.shots ?? '-'}</dd>
           </div>
         </dl>
 
         <div className="badges" aria-label={t(language, 'abilities')}>
           {selectedCreature.abilities.length === 0 ? (
-            <span className="muted">None</span>
+            <span className="muted">{t(language, 'none')}</span>
           ) : (
-            selectedCreature.abilities.map((ability) => <span key={ability}>{ability}</span>)
+            selectedCreature.abilities.map((ability) => <span key={ability}>
+              {abilityLabel(ability, language, selectedCreature.abilities.includes('ranged'))}
+            </span>)
           )}
         </div>
 
         {selectedCreature.notes.length > 0 && (
-          <p className="notes">
-            {t(language, 'unsupported')}: {selectedCreature.notes.join(', ')}
-          </p>
+          <details className="notes">
+            <summary>{t(language, 'unsupported')}</summary>
+            <p>{selectedCreature.notes.join(', ')}</p>
+          </details>
         )}
       </div>
     </section>
@@ -260,31 +254,12 @@ function Results({ language, summary }: { language: Language; summary: Simulatio
           <article>
             <h3>{t(language, 'draws')}</h3>
             <p className="result-number">{summary.draws}</p>
-            <p className="muted">{summary.total} total fights</p>
+            <p className="muted">{summary.total} {t(language, 'totalFights')}</p>
           </article>
         </div>
       </div>
 
-      <details className="log-panel" open>
-        <summary>{t(language, 'sampleLog')}</summary>
-        <div className="round-log">
-          {groupLogByRound(summary.sample.log).map(([round, entries]) => (
-            <section key={round} className="round-log-section">
-              <h3>
-                {t(language, 'round')} {round}
-              </h3>
-              <ol>
-                {entries.map((entry, index) => (
-                  <li key={`${entry.round}-${entry.phase}-${index}`}>
-                    <span className={`log-phase phase-${entry.phase}`}>{entry.phase}</span>
-                    {entry.message}
-                  </li>
-                ))}
-              </ol>
-            </section>
-          ))}
-        </div>
-      </details>
+      <BattleLog sample={summary.sample} total={summary.total} language={language} />
     </section>
   )
 }
@@ -311,7 +286,7 @@ export default function App() {
     search: '',
   })
   const [summary, setSummary] = useState<SimulationSummary | null>(null)
-  const [presetMessage, setPresetMessage] = useState<string | null>(null)
+  const [presetMessage, setPresetMessage] = useState<LocalizedText | null>(null)
   const [presetPayload, setPresetPayload] = useState<BattlePresetPayload | null>(null)
   const [selectedPresetId, setSelectedPresetId] = useState('')
 
@@ -376,13 +351,13 @@ export default function App() {
     if (!isValidNumber(weeks, 'weeks')) return
     const result = calculateEqualGoldStacks(selectedCreatureA, selectedCreatureB, weeks)
     if (!result.ok) {
-      setPresetMessage(t(language, 'equalGoldUnavailable'))
+      setPresetMessage({ en: t('en', 'equalGoldUnavailable'), pl: t('pl', 'equalGoldUnavailable') })
       return
     }
 
     setSideA({ ...normalizedSideA, count: result.sideA })
     setSideB({ ...normalizedSideB, count: result.sideB })
-    setPresetMessage(`${t(language, 'equalGoldBudget')}: ${result.budget}`)
+    setPresetMessage({ en: `${t('en', 'equalGoldBudget')}: ${result.budget}`, pl: `${t('pl', 'equalGoldBudget')}: ${result.budget}` })
     setSummary(null)
   }
 
@@ -406,7 +381,7 @@ export default function App() {
       search: '',
     })
     setSummary(null)
-    setPresetMessage(`${t(language, 'presetApplied')}: ${selectedPreset.label[language]}`)
+    setPresetMessage({ en: `${t('en', 'presetApplied')}: ${selectedPreset.label.en}`, pl: `${t('pl', 'presetApplied')}: ${selectedPreset.label.pl}` })
   }
 
   const config: BattleConfig = {
@@ -509,7 +484,7 @@ export default function App() {
             ))}
           </select>
         </label>
-        <button type="button" onClick={applyPublicPreset} disabled={!selectedPreset}>
+        <button className="apply-preset" type="button" onClick={applyPublicPreset} disabled={!selectedPreset}>
           {t(language, 'applyPreset')}
         </button>
         <button type="button" onClick={applyWeeklyGrowthPreset} disabled={!!weeksError}>
@@ -518,9 +493,7 @@ export default function App() {
         <button type="button" onClick={applyEqualGoldPreset} disabled={!equalGoldPreview.ok || !!weeksError}>
           {t(language, 'setEqualGold')}
         </button>
-        <button type="button" onClick={runSimulation} disabled={validationErrors.length > 0}>
-          {t(language, 'run')}
-        </button>
+        {selectedPreset?.description && <p className="preset-description muted">{selectedPreset.description[language]}</p>}
       </section>
 
       {validationErrors.length > 0 && <div role="alert" className="validation-errors">
@@ -529,11 +502,9 @@ export default function App() {
 
       {(presetMessage || !equalGoldPreview.ok) && (
         <p className="preset-message">
-          {presetMessage ?? t(language, 'equalGoldUnavailable')}
+          {presetMessage?.[language] ?? t(language, 'equalGoldUnavailable')}
         </p>
       )}
-
-      <Results language={language} summary={summary} />
 
       <div className="duel-grid">
         <SidePanel
@@ -553,6 +524,14 @@ export default function App() {
           onChange={updateSideB}
         />
       </div>
+
+      <div className="simulation-action">
+        <button type="button" onClick={runSimulation} disabled={validationErrors.length > 0}>
+          {t(language, 'run')}
+        </button>
+        <p className="muted">{t(language, 'modelLimits')}</p>
+      </div>
+      <Results language={language} summary={summary} />
 
       <footer>
         <strong>{t(language, 'sources')}:</strong>{' '}
