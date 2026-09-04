@@ -6,7 +6,7 @@ import type {
   Ruleset,
 } from '../types'
 
-const PRESET_URL = '/data/presets.v1.json'
+const PRESET_PATH = 'data/presets.v1.json'
 
 type PresetFetch = (
   url: string,
@@ -201,7 +201,7 @@ export async function loadBattlePresets(
   if (!fetcher) return fallbackPresetPayload
 
   try {
-    const response = await fetcher(PRESET_URL, { cache: 'force-cache' })
+    const response = await fetcher(`${import.meta.env.BASE_URL}${PRESET_PATH}`, { cache: 'force-cache' })
     if (!response.ok) return fallbackPresetPayload
 
     return parsePresetPayload(await response.json()) ?? fallbackPresetPayload

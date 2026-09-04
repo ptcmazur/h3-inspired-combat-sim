@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { fallbackPresetPayload, loadBattlePresets, parsePresetPayload } from './presets'
 
 const validPayload = {
@@ -34,6 +34,8 @@ const validPayload = {
 }
 
 describe('battle preset data', () => {
+  afterEach(() => vi.unstubAllEnvs())
+
   it('parses a valid public preset payload', () => {
     const parsed = parsePresetPayload(validPayload)
 
@@ -59,6 +61,21 @@ describe('battle preset data', () => {
 
     expect(fetcher).toHaveBeenCalledWith('/data/presets.v1.json', { cache: 'force-cache' })
     expect(loaded.presets[0].id).toBe('castle-vs-inferno-weekly')
+  })
+
+  it('loads public presets under the configured deployment base path', async () => {
+    vi.stubEnv('BASE_URL', '/h3-inspired-combat-sim/')
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => validPayload,
+    })
+
+    const loaded = await loadBattlePresets(fetcher)
+
+    expect(fetcher).toHaveBeenCalledWith('/h3-inspired-combat-sim/data/presets.v1.json', {
+      cache: 'force-cache',
+    })
+    expect(loaded).toEqual(validPayload)
   })
 
   it('falls back to bundled presets when the public preset file is unavailable', async () => {

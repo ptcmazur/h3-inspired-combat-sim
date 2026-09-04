@@ -22,35 +22,35 @@ Open `http://127.0.0.1:5173/`.
 npm test
 npm run lint
 npm run build
+npm run build:pages
 ```
 
 ## Public Hosting
 
-Recommended public path: Firebase Hosting.
+Primary hosting: [GitHub Pages](https://ptcmazur.github.io/h3-inspired-combat-sim/).
 
-1. Create or select an existing Firebase project in your GCP account.
-2. Run `npx firebase-tools login`.
-3. Run `npx firebase-tools init hosting`, choose the existing project, set the public directory to `dist`, and enable SPA rewrites.
-4. Set GitHub Actions variable `FIREBASE_PROJECT_ID` to the selected project ID.
-5. Set GitHub Actions secret `FIREBASE_SERVICE_ACCOUNT` to the Firebase Hosting deploy service account JSON.
-6. Merge to `main`; `.github/workflows/deploy-firebase.yml` runs tests, lint, build, and deploys the live Firebase Hosting channel.
+In repository Settings -> Pages, select GitHub Actions as the source.
+`.github/workflows/deploy-pages.yml` tests, lints and builds the app, then publishes it on each push to `main` or manual run. It uses the repository token and does not require hosting credentials.
 
-Local deploy is available with:
+The Pages build sets Vite's base to `/h3-inspired-combat-sim/`. Asset and preset URLs use that base. To preview the same build locally:
 
 ```powershell
-npm run deploy:firebase
+npm run build:pages
+npm run preview -- --base=/h3-inspired-combat-sim/
 ```
 
-The first public URL can use the default Firebase `web.app` / `firebaseapp.com` subdomains. A custom domain can be connected later from the Firebase Hosting console.
+Open `http://localhost:4173/h3-inspired-combat-sim/`.
 
-Cloudflare Pages, Netlify, Vercel, and GitHub Pages also work because the app is a static frontend-only build, but Firebase Hosting is the primary release target for this project.
+Firebase remains an optional manual target. Its workflow requires `FIREBASE_PROJECT_ID` and `FIREBASE_SERVICE_ACCOUNT`; local deployment is available through `npm run deploy:firebase` after selecting and authenticating a Firebase project.
+
+The simulator is an early MVP with simplified combat rules; see the in-app notes on unsupported creature abilities.
 
 ## Public Presets
 
-Read-only public presets are served as static JSON from Firebase Hosting:
+Read-only public presets are served as static JSON relative to the deployment base:
 
-- Versioned data: `/data/presets.v1.json`
-- Pointer metadata: `/data/presets.latest.json`
+- Versioned data: `data/presets.v1.json`
+- Pointer metadata: `data/presets.latest.json`
 
 The frontend fetches the versioned JSON file and falls back to bundled presets if the request fails. This keeps public preset/catalog reads out of Firestore and avoids document-read billing for the current MVP.
 
