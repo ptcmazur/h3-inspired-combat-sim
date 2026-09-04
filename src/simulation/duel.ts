@@ -303,13 +303,11 @@ export function simulateOne(config: BattleConfig): BattleResult {
   }
 
   const winner =
-    sideA.stack.count <= 0 && sideB.stack.count <= 0
-      ? 'draw'
-      : sideA.stack.count > 0
-        ? 'A'
-        : sideB.stack.count > 0
-          ? 'B'
-          : 'draw'
+    sideA.stack.count > 0 && sideB.stack.count <= 0
+      ? 'A'
+      : sideB.stack.count > 0 && sideA.stack.count <= 0
+        ? 'B'
+        : 'draw'
 
   return {
     winner,

@@ -9,6 +9,8 @@ It does not include original Heroes of Might and Magic III assets, graphics, mus
 
 ## Local Development
 
+Project notes: [structure and findings](docs/PROJECT_ANALYSIS.md), [roadmap and task status](docs/superpowers/plans/2026-09-05-project-roadmap.md).
+
 ```powershell
 npm install
 npm run dev

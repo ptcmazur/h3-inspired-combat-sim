@@ -52,6 +52,47 @@ const baseConfig: BattleConfig = {
 }
 
 describe('duel simulation', () => {
+  const roundLimitedConfig: BattleConfig = {
+    ...baseConfig,
+    maxRounds: 1,
+    sideA: { creature: slow, count: 100, heroId: 'none' },
+    sideB: { creature: slow, count: 100, heroId: 'none' },
+  }
+
+  it('draws when both stacks survive the round limit', () => {
+    const battle = simulateOne(roundLimitedConfig)
+
+    expect(battle.rounds).toBe(1)
+    expect(battle.sideA.count).toBeGreaterThan(0)
+    expect(battle.sideB.count).toBeGreaterThan(0)
+    expect(battle.winner).toBe('draw')
+  })
+
+  it('counts round-limited draws without awarding either side wins', () => {
+    const summary = simulateMany({ ...roundLimitedConfig, simulations: 3 })
+
+    expect(summary.total).toBe(3)
+    expect(summary.draws).toBe(3)
+    expect(summary.sideA.wins).toBe(0)
+    expect(summary.sideB.wins).toBe(0)
+    expect(summary.sideA.winRate).toBe(0)
+    expect(summary.sideB.winRate).toBe(0)
+    expect(summary.sideA.wins + summary.sideB.wins + summary.draws).toBe(summary.total)
+  })
+
+  it.each(['A', 'B'] as const)('preserves side %s victory on the final allowed round', (winner) => {
+    const battle = simulateOne({
+      ...baseConfig,
+      maxRounds: 1,
+      sideA: winner === 'A' ? baseConfig.sideA : baseConfig.sideB,
+      sideB: winner === 'A' ? baseConfig.sideB : baseConfig.sideA,
+    })
+
+    expect(battle.rounds).toBe(1)
+    expect(battle.winner).toBe(winner)
+    expect(winner === 'A' ? battle.sideB.count : battle.sideA.count).toBe(0)
+  })
+
   it('runs a seeded battle to a winner and records the first speed-based action', () => {
     const battle = simulateOne(baseConfig)
 
