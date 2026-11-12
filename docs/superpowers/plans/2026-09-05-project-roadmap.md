@@ -134,6 +134,8 @@ Wdrożenie: parser i generator mają osobne moduły oraz 16 testów offline. Kor
 
 Weryfikacja: 113 testów projektu, lint i build Pages przeszły; po dopracowaniu obsługi CRLF ponowiono 16 testów generatora/parsera i lint. Podgląd bieżącej wiki odczytał 190 jednostek i 212 bohaterów bez dodanych/usuniętych ID; wykazał 7 zmienionych jednostek i 27 bohaterów. Ta zmiana wdraża narzędzie; aktualizacja danych gry wymaga osobnego przeglądu tych różnic i nie została tu zastosowana.
 
+Aktualizacja 2026-11-13: po osobnym przeglądzie zastosowano 7 zmian jednostek i 27 bohaterów, opisanych w `docs/DATA_SOURCES.md`. Zachowano wszystkie ID, statystyki liczbowe, zdolności i umiejętności. Raport 26 źródeł jest w `src/data/generation-report.json`. 116 testów, lint i build Pages przeszły; ponowne generowanie ze sprawdzonego zestawu źródeł daje identyczne dane i sumy kontrolne.
+
 ## Etap 3 — czytelność i szybkość
 
 ### H3-07 — strukturalny i tłumaczony log

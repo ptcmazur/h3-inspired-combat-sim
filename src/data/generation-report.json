@@ -1,0 +1,248 @@
+{
+  "schemaVersion": 1,
+  "rulesetProfile": "h3-sim-catalog-v1",
+  "gameVersions": {
+    "complete": "unverified",
+    "hota": "unverified"
+  },
+  "sources": [
+    {
+      "page": "List_of_creatures",
+      "url": "https://heroes.thelazy.net/index.php/List_of_creatures",
+      "retrievedAt": "2026-11-12T23:23:06.974Z",
+      "revision": "194544",
+      "sha256": "fa7b49e9deb1208b3c03ef031be47edf1bd7a626b8b9090fe360aaec87813a37"
+    },
+    {
+      "page": "Heroes",
+      "url": "https://heroes.thelazy.net/index.php/Heroes",
+      "retrievedAt": "2026-11-12T23:23:09.940Z",
+      "revision": "191629",
+      "sha256": "9552aa824e756dee8aa169f94cce98c45ce53ae2aa3e9883d5ffbb002c4371a4"
+    },
+    {
+      "page": "Alchemist",
+      "url": "https://heroes.thelazy.net/index.php/Alchemist",
+      "retrievedAt": "2026-11-12T23:23:12.336Z",
+      "revision": "191357",
+      "sha256": "5409b3dee04562be2da544e413c427aae2269a392fcb462bb6aeb6781b0065e9"
+    },
+    {
+      "page": "Artificer",
+      "url": "https://heroes.thelazy.net/index.php/Artificer",
+      "retrievedAt": "2026-11-12T23:23:14.613Z",
+      "revision": "191584",
+      "sha256": "310f5e29e92a9604b8acce6de9a800d96bc0c853af059759106958edcf13cfbe"
+    },
+    {
+      "page": "Barbarian",
+      "url": "https://heroes.thelazy.net/index.php/Barbarian",
+      "retrievedAt": "2026-11-12T23:23:16.886Z",
+      "revision": "191365",
+      "sha256": "8f012cbbab260f1d517f710f39051fe4d38775ec3a2fe1bea388e5bc73871fac"
+    },
+    {
+      "page": "Battle_Mage",
+      "url": "https://heroes.thelazy.net/index.php/Battle_Mage",
+      "retrievedAt": "2026-11-12T23:23:19.497Z",
+      "revision": "191366",
+      "sha256": "1f74270801fef65c4adfff8eb87d36f63387c17af25d56bd157811c86ba0efc1"
+    },
+    {
+      "page": "Beastmaster",
+      "url": "https://heroes.thelazy.net/index.php/Beastmaster",
+      "retrievedAt": "2026-11-12T23:23:21.809Z",
+      "revision": "191367",
+      "sha256": "212c7c481b086ab9c762de50761ac485efeb932fbf45de397e0defab1cad7e3a"
+    },
+    {
+      "page": "Captain",
+      "url": "https://heroes.thelazy.net/index.php/Captain",
+      "retrievedAt": "2026-11-12T23:23:24.109Z",
+      "revision": "191581",
+      "sha256": "47fa655fda5c545026ba0d982120c43f91e5698553637edec5ec2e2fe4d14198"
+    },
+    {
+      "page": "Chieftain",
+      "url": "https://heroes.thelazy.net/index.php/Chieftain",
+      "retrievedAt": "2026-11-12T23:23:26.405Z",
+      "revision": "191585",
+      "sha256": "07e9af59dc0a292d35ed0b0e7eb31cdd815218ebbf2445d6a9c58a46fac7ec8a"
+    },
+    {
+      "page": "Cleric",
+      "url": "https://heroes.thelazy.net/index.php/Cleric",
+      "retrievedAt": "2026-11-12T23:23:28.677Z",
+      "revision": "191353",
+      "sha256": "932eb958e70685b85e73beb974d17c805a9687d16d60c1d6ad96d0f105f6dc23"
+    },
+    {
+      "page": "Death_Knight",
+      "url": "https://heroes.thelazy.net/index.php/Death_Knight",
+      "retrievedAt": "2026-11-12T23:23:31.370Z",
+      "revision": "191361",
+      "sha256": "2c8362e40286a16576fe41f7d39cf04ca4c4ec26c348949025857eb7b85e1a4f"
+    },
+    {
+      "page": "Demoniac",
+      "url": "https://heroes.thelazy.net/index.php/Demoniac",
+      "retrievedAt": "2026-11-12T23:23:33.681Z",
+      "revision": "191359",
+      "sha256": "d207d780af990bb8fdb405ccd0578485a7c1ded18ea6b3d8b4d3b3a6f7408e0f"
+    },
+    {
+      "page": "Druid",
+      "url": "https://heroes.thelazy.net/index.php/Druid",
+      "retrievedAt": "2026-11-12T23:23:36.002Z",
+      "revision": "191356",
+      "sha256": "1c67019bdaebe9f11833a5986fe460a1a46a26365773c63476bd40c6214b5ad9"
+    },
+    {
+      "page": "Elder",
+      "url": "https://heroes.thelazy.net/index.php/Elder",
+      "retrievedAt": "2026-11-12T23:23:38.328Z",
+      "revision": "191586",
+      "sha256": "3f31deae3fdb4f2c20c50d3c63f653ac4b5ba4076be10356ed8f978e262b169f"
+    },
+    {
+      "page": "Elementalist",
+      "url": "https://heroes.thelazy.net/index.php/Elementalist",
+      "retrievedAt": "2026-11-12T23:23:40.966Z",
+      "revision": "191371",
+      "sha256": "0f662f4e998b92f27438cbf04b1b4e70ebb90dc0e5896a9c2ffef6289ba022a1"
+    },
+    {
+      "page": "Heretic",
+      "url": "https://heroes.thelazy.net/index.php/Heretic",
+      "retrievedAt": "2026-11-12T23:23:43.452Z",
+      "revision": "191360",
+      "sha256": "b36ee0584a736d28e50f4969803a9af4029ff9c524111190108ba06ebb9cedb6"
+    },
+    {
+      "page": "Knight",
+      "url": "https://heroes.thelazy.net/index.php/Knight",
+      "retrievedAt": "2026-11-12T23:23:45.822Z",
+      "revision": "191352",
+      "sha256": "7d0d8dad1d1921a7b7b32a597e15a846feb584a3dab60ee19e9471c91215c263"
+    },
+    {
+      "page": "Mercenary",
+      "url": "https://heroes.thelazy.net/index.php/Mercenary",
+      "retrievedAt": "2026-11-12T23:23:48.129Z",
+      "revision": "191583",
+      "sha256": "b0b17c1a3e564c011fbf17c80e3d90f3a62b4629a9b99c50dec632090aed3f17"
+    },
+    {
+      "page": "Navigator",
+      "url": "https://heroes.thelazy.net/index.php/Navigator",
+      "retrievedAt": "2026-11-12T23:23:50.447Z",
+      "revision": "191582",
+      "sha256": "c39775964d077abc8b6b6b286dfb64cdaeee663f62cf37706a8ab981fa3a1d4f"
+    },
+    {
+      "page": "Necromancer",
+      "url": "https://heroes.thelazy.net/index.php/Necromancer",
+      "retrievedAt": "2026-11-12T23:23:52.977Z",
+      "revision": "191362",
+      "sha256": "369fc48cf6e9a939032abb672982639e1cd33a24dbaf152ea90701a1fbc1c8ab"
+    },
+    {
+      "page": "Overlord",
+      "url": "https://heroes.thelazy.net/index.php/Overlord",
+      "retrievedAt": "2026-11-12T23:23:55.538Z",
+      "revision": "191363",
+      "sha256": "75b192d047b1b487024aa1e6baf2fb1e3e7e379f35b4dea6690e870b19442896"
+    },
+    {
+      "page": "Planeswalker",
+      "url": "https://heroes.thelazy.net/index.php/Planeswalker",
+      "retrievedAt": "2026-11-12T23:23:57.889Z",
+      "revision": "191370",
+      "sha256": "ae14d81a4f2d2f127f1baad90301ed651a61169b3beb23ca1b62a3d3a6ef6977"
+    },
+    {
+      "page": "Ranger",
+      "url": "https://heroes.thelazy.net/index.php/Ranger",
+      "retrievedAt": "2026-11-12T23:24:00.243Z",
+      "revision": "191355",
+      "sha256": "48cfded8224f9c1a0e73a4b3a6f1c8a8828a9d00207710d1b20ecaa0d7c8c9a2"
+    },
+    {
+      "page": "Warlock",
+      "url": "https://heroes.thelazy.net/index.php/Warlock",
+      "retrievedAt": "2026-11-12T23:24:02.590Z",
+      "revision": "193699",
+      "sha256": "28a97138325cf40d7165314c15e51026067706a65aafd52ce618a8c93d87670f"
+    },
+    {
+      "page": "Witch",
+      "url": "https://heroes.thelazy.net/index.php/Witch",
+      "retrievedAt": "2026-11-12T23:24:04.908Z",
+      "revision": "192637",
+      "sha256": "d4dc06dbea517fa0ffa65b1afdfa82468ccaef1eec77adde8ac0d302bb644367"
+    },
+    {
+      "page": "Wizard",
+      "url": "https://heroes.thelazy.net/index.php/Wizard",
+      "retrievedAt": "2026-11-12T23:24:07.304Z",
+      "revision": "191358",
+      "sha256": "50c9abdc6ef4b2a599a2a318c34e0e5ace2a3eb75c1909cfd4c126e5e93dc3ac"
+    }
+  ],
+  "counts": {
+    "creatures": 190,
+    "heroes": 212
+  },
+  "changes": {
+    "creatures": {
+      "added": [],
+      "removed": [],
+      "changed": [
+        "bulwark-mammoth",
+        "bulwark-snow-elf",
+        "conflux-firebird",
+        "halfling",
+        "inferno-arch-devil",
+        "tower-obsidian-gargoyle",
+        "tower-stone-gargoyle"
+      ]
+    },
+    "heroes": {
+      "added": [],
+      "removed": [],
+      "changed": [
+        "alchemist-fafner",
+        "alchemist-fafner-2",
+        "barbarian-krellion",
+        "barbarian-krellion-2",
+        "battle-mage-saurug",
+        "battle-mage-saurug-2",
+        "beastmaster-bron",
+        "beastmaster-bron-2",
+        "death-knight-haart-lichlord-haart",
+        "death-knight-ranloo",
+        "death-knight-straker",
+        "death-knight-straker-2",
+        "demoniac-ignatius",
+        "demoniac-ignatius-2",
+        "druid-uland",
+        "druid-uland-2",
+        "knight-beatrice",
+        "overlord-ajit",
+        "overlord-ajit-2",
+        "ranger-clancy",
+        "ranger-clancy-2",
+        "ranger-giselle",
+        "ranger-ufretin",
+        "ranger-ufretin-2",
+        "warlock-deemer",
+        "warlock-deemer-2",
+        "witch-kinkeria"
+      ]
+    }
+  },
+  "outputs": {
+    "creatures.ts": "102a64bef357bad0c22bd35d701d7e7a98efea358a0078a7f4629894bee66bd8",
+    "heroes.ts": "aaa8b10d9019bed162d6815dd63805e935bb4466d91c8c2b76338e809c708ad7"
+  }
+}

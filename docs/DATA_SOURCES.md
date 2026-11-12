@@ -43,3 +43,27 @@ Both SoD-only and HotA-only hero rows are retained with their corresponding rule
 The CLI spaces requests two seconds apart and uses a 20-second timeout. HTTP failures, including rate limits (429), stop the run without changing catalogs; retry later rather than bypassing the source limit.
 
 The HTML parser deliberately fails closed on an unsupported table layout. Offline tests verify its contract, not that the live wiki will retain the same layout. A live preview must succeed before a live regeneration is accepted.
+
+## Reviewed refresh — 2026-11-13
+
+Applied the reviewed snapshot from [List of creatures](https://heroes.thelazy.net/index.php/List_of_creatures), [Heroes](https://heroes.thelazy.net/index.php/Heroes) and 24 hero-class pages. Exact retrieval timestamps, source hashes, available revision IDs and generated-file checksums are recorded in `src/data/generation-report.json`. The catalog still contains 190 creatures and 212 heroes, including `none`; no IDs were added or removed.
+
+The seven changed creature records were checked field by field against the source HTML:
+
+| Records | Accepted change | Source evidence |
+| --- | --- | --- |
+| `bulwark-snow-elf`, `bulwark-mammoth` | Display names gain `(HotA)`; existing IDs and sprite keys remain | Disambiguated wiki link titles |
+| `tower-stone-gargoyle`, `tower-obsidian-gargoyle` | `Bloodless Unliving` becomes `Bloodless` | Separate HotA/SoD spans previously concatenated |
+| `inferno-arch-devil` | `Luck -2 1` becomes `Luck -2` | HotA value selected instead of concatenating the alternate value |
+| `conflux-firebird` | `50% Fire resistance Fire immunity` becomes `50% Fire resistance` | HotA resistance and SoD immunity occupy separate spans |
+| `halfling` | Neutral unit available only in Complete | Row marked `onlysod`; separate `factory-halfling-factory` remains HotA-only |
+
+The 27 changed hero records comprise:
+
+- Eleven variant pairs (22 records): Ufretin, Clancy, Uland, Fafner, Ignatius, Straker, Ajit, Deemer, Krellion, Saurug and Bron. Source `onlysod` rows now belong only to Complete; `onlyhota` rows only to HotA. Each original ID and its `-2` counterpart still refer to the same skills as before; they were not swapped.
+- Beatrice, Giselle, Ranloo and Kinkeria: marked HotA-only according to their source row classes.
+- `death-knight-haart-lichlord-haart`: displayed as `Haart Lich` instead of concatenating the HotA and SoD names; the legacy ID remains unchanged.
+
+All creature numeric stats, combat ability flags, ammunition, tiers and sprite keys are unchanged. All hero primary stats, skills and specialties are unchanged. Manual overrides, including `Bez bohatera`, are retained. The larger textual diff also reflects deterministic sorting by ID and property ordering in generated hero records.
+
+This refresh follows the documented shared-row HotA interpretation. It does not establish exact game release versions or introduce separate Complete descriptions/statistics for shared records. Existing presets that used a hero in the wrong ruleset will now fail ruleset validation; the bundled presets retain valid references. The UI resets an unavailable hero to `none` when changing rulesets.
