@@ -70,8 +70,12 @@ Generated data comes from Heroes 3 wiki pages:
 - `https://heroes.thelazy.net/index.php/Heroes`
 - `https://heroes.thelazy.net/index.php/Damage`
 
-Regenerate local TypeScript data with:
+Preview and validate refreshed data without modifying the catalog (Node 24+):
 
 ```powershell
-node scripts/generate-wiki-data.mjs
+npm run data:preview
 ```
+
+After reviewing the report, run `npm run data:generate` to write with backups.
+Keep manual translations and stat corrections in `src/data/overrides.ts`.
+See [data generation and recovery](docs/DATA_SOURCES.md) for validation, provenance and ruleset limitations.

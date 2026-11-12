@@ -12,6 +12,8 @@ dist
 dist-ssr
 *.local
 .firebase
+src/data/.wiki-backups/
+src/data/.wiki-generation.lock
 
 # Editor directories and files
 .vscode/*

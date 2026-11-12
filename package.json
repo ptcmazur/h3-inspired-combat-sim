@@ -13,7 +13,9 @@
     "serve:firebase": "npm run build && npx firebase-tools emulators:start --only hosting",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:smoke": "node scripts/smoke-ui.mjs"
+    "test:smoke": "node scripts/smoke-ui.mjs",
+    "data:preview": "node scripts/generate-wiki-data.mjs",
+    "data:generate": "node scripts/generate-wiki-data.mjs --write"
   },
   "dependencies": {
     "react": "^19.2.6",

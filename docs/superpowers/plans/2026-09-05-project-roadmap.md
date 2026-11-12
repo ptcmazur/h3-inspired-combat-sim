@@ -121,14 +121,18 @@ expect(simulateMany({ ...config, simulations: 3 }).draws).toBe(3)
 
 **Pliki:** `scripts/generate-wiki-data.mjs`, katalogi danych i ich testy; nowe `scripts/wiki-parser.mjs`, `scripts/wiki-parser.test.ts`, `scripts/fixtures/wiki-minimal.html`, `src/data/overrides.ts`, `docs/DATA_SOURCES.md`.
 
-- [ ] Wydzielić parsowanie HTML od fetch i zapisu. Dodać mały syntetyczny HTML do testów: prawidłowy wiersz, brak wymaganej kolumny, dwa różne rodzaje braku kar i błąd statystyk bohatera.
-- [ ] Rozdzielić brak kary dystansowej od braku kary wręcz. Nie zamieniać nieudanego pobrania statystyk na poprawny rekord z zerami.
-- [ ] Przed nadpisaniem obu plików sprawdzić cały wynik generowania; przy błędzie zakończyć bez zmiany istniejącego katalogu.
-- [ ] Ręczne nazwy PL i korekty przechowywać w `overrides.ts` kluczowanym po ID; generator nakłada je w powtarzalnej kolejności.
-- [ ] Dodać raport wersji źródeł, daty pobrania, liczby rekordów i różnic. Przypiąć opisaną wersję zasad dla Complete/HotA zamiast traktować nazwę wariantu jako gwarancję zgodności.
-- [ ] Testować parser offline przez `npm test -- scripts/wiki-parser.test.ts`; osobno sprawdzać niezmienność korekt po powtórnym generowaniu.
+- [x] Wydzielić parsowanie HTML od fetch i zapisu. Dodać mały syntetyczny HTML do testów: prawidłowy wiersz, brak wymaganej kolumny, dwa różne rodzaje braku kar i błąd statystyk bohatera.
+- [x] Rozdzielić brak kary dystansowej od braku kary wręcz. Nie zamieniać nieudanego pobrania statystyk na poprawny rekord z zerami.
+- [x] Przed nadpisaniem obu plików sprawdzić cały wynik generowania; przy błędzie zakończyć bez zmiany istniejącego katalogu.
+- [x] Ręczne nazwy PL i korekty przechowywać w `overrides.ts` kluczowanym po ID; generator nakłada je w powtarzalnej kolejności.
+- [x] Dodać raport wersji źródeł, daty pobrania, liczby rekordów i różnic. Przypiąć opisaną wersję zasad dla Complete/HotA zamiast traktować nazwę wariantu jako gwarancję zgodności.
+- [x] Testować parser offline przez `npm test -- scripts/wiki-parser.test.ts`; osobno sprawdzać niezmienność korekt po powtórnym generowaniu.
 
 **Odbiór:** błędne źródło nie niszczy katalogu, ręczne korekty przeżywają regenerację, testy nie wymagają internetu.
+
+Wdrożenie: parser i generator mają osobne moduły oraz 16 testów offline. Korekty są nakładane po ID, zapis korzysta z blokady, kopii i cofania zmian po błędzie. Podgląd jest domyślny; zapis wymaga jawnego polecenia. Profil interpretacji danych to `h3-sim-catalog-v1`; konkretne wydania gry pozostają oznaczone jako niezweryfikowane (szczegóły w `docs/DATA_SOURCES.md`).
+
+Weryfikacja: 113 testów projektu, lint i build Pages przeszły; po dopracowaniu obsługi CRLF ponowiono 16 testów generatora/parsera i lint. Podgląd bieżącej wiki odczytał 190 jednostek i 212 bohaterów bez dodanych/usuniętych ID; wykazał 7 zmienionych jednostek i 27 bohaterów. Ta zmiana wdraża narzędzie; aktualizacja danych gry wymaga osobnego przeglądu tych różnic i nie została tu zastosowana.
 
 ## Etap 3 — czytelność i szybkość
 
