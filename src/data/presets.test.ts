@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { fallbackPresetPayload, loadBattlePresets, parsePresetPayload } from './presets'
+import publicPayload from '../../public/data/presets.v1.json'
+import latest from '../../public/data/presets.latest.json'
 
 const validPayload = {
   version: 1,
@@ -35,6 +37,40 @@ const validPayload = {
 
 describe('battle preset data', () => {
   afterEach(() => vi.unstubAllEnvs())
+
+  it('validates the shipped catalog and keeps its fallback and pointer consistent', () => {
+    expect(parsePresetPayload(publicPayload)).toEqual(publicPayload)
+    expect(fallbackPresetPayload).toEqual(publicPayload)
+    expect(latest.version).toBe(publicPayload.version)
+    expect(latest.updatedAt).toBe(publicPayload.updatedAt)
+    expect(latest.path).toBe('data/presets.v1.json')
+  })
+
+  it.each([
+    { sideA: { ...validPayload.presets[0].sideA, creatureId: 'missing' } },
+    { sideB: { ...validPayload.presets[0].sideB, heroId: 'missing' } },
+    { ruleset: 'complete', sideA: { ...validPayload.presets[0].sideA, creatureId: 'cove-nymph' } },
+    { ruleset: 'complete', sideB: { ...validPayload.presets[0].sideB, heroId: 'captain-corkes' } },
+    { sideA: { ...validPayload.presets[0].sideA, count: 100000 } },
+    { weeks: 53 }, { startDistance: 51 }, { simulationCount: 5001 },
+    { simulationCount: 1.5 }, { startDistance: Infinity }, { weeks: NaN }, { id: '' },
+  ])('rejects an unusable preset: %j', patch => {
+    expect(parsePresetPayload({ ...validPayload, presets: [{ ...validPayload.presets[0], ...patch }] })).toBeNull()
+  })
+
+  it('rejects an empty catalog and duplicate IDs', () => {
+    expect(parsePresetPayload({ ...validPayload, presets: [] })).toBeNull()
+    expect(parsePresetPayload({ ...validPayload, presets: [validPayload.presets[0], validPayload.presets[0]] })).toBeNull()
+  })
+
+  it.each([
+    { ok: false, json: async () => validPayload },
+    { ok: true, json: async () => { throw new SyntaxError('Invalid JSON') } },
+    { ok: true, json: async () => ({ ...validPayload, presets: [] }) },
+    { ok: true, json: async () => ({ ...validPayload, presets: [{ ...validPayload.presets[0], sideA: { ...validPayload.presets[0].sideA, creatureId: 'missing' } }] }) },
+  ])('uses the known bundled catalog when a remote response is unusable', async response => {
+    expect(await loadBattlePresets(async () => response)).toEqual(fallbackPresetPayload)
+  })
 
   it('parses a valid public preset payload', () => {
     const parsed = parsePresetPayload(validPayload)

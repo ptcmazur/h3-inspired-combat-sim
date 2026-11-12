@@ -4,6 +4,10 @@ import { heroes } from './heroes'
 import { getAvailableCreatures, getAvailableHeroes } from './selectors'
 
 describe('HoMM3 data', () => {
+  it('keeps creature and hero IDs unique for unambiguous selection', () => {
+    expect(new Set(creatures.map(c => c.id)).size).toBe(creatures.length)
+    expect(new Set(heroes.map(h => h.id)).size).toBe(heroes.length)
+  })
   it('contains full-size Complete and HotA creature sets with required stats', () => {
     expect(getAvailableCreatures('complete').length).toBeGreaterThanOrEqual(140)
     expect(getAvailableCreatures('hota').length).toBeGreaterThanOrEqual(170)

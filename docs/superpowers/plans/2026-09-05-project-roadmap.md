@@ -28,8 +28,8 @@
 | H3-01 | P0 | Ukończone: poprawny wynik walki przerwanej limitem | brak | 1–2 h |
 | H3-02 | P0 | Ukończone: reguły ataku/kontrataku | H3-01 | 4–8 h |
 | H3-03 | P0 | Ukończone: walidacja i aktualność wyników | H3-01 | 3–5 h |
-| H3-04 | P1 | Spójne dane oraz bezpieczne presety | H3-03 | 3–5 h |
-| H3-05 | P1 | Jedna opisana ścieżka wydania i CI dla PR | brak; wydanie po H3-01–04 | 3–5 h |
+| H3-04 | P1 | Ukończone: integralność danych i presetów | H3-03 | 3–5 h |
+| H3-05 | P1 | Ukończone: Pages i osobne CI dla PR | brak; wydanie po H3-01–04 | 3–5 h |
 | H3-06 | P1 | Powtarzalne generowanie danych | H3-04 | 4–8 h |
 | H3-07 | P1 | Ukończone: log PL/EN z wyliczeniem obrażeń | H3-02 | 4–7 h |
 | H3-08 | P1 | Responsywne obliczenia dużych serii | H3-03, H3-07 | 4–8 h |
@@ -97,11 +97,11 @@ expect(simulateMany({ ...config, simulations: 3 }).draws).toBe(3)
 
 **Pliki:** `src/data/data.test.ts`, `presets.ts`, `presets.test.ts`, `public/data/presets.v1.json`, `presets.latest.json`.
 
-- [ ] Testować unikalność ID stworzeń, bohaterów i presetów; referencje obu stron oraz zgodność z rulesetem.
-- [ ] Sprawdzać rzeczywisty plik publiczny i fallback, a nie wyłącznie fixture testowe. Wymagać spójności treści dla tej samej wersji.
-- [ ] W parserze odrzucać nieznane ID, duplikaty, niedostępne frakcje i liczby ponad limity H3-03; nie zastępować błędnego wyboru pierwszą jednostką.
-- [ ] Dodać przypadki fetch: HTTP error, odrzucona obietnica, niepoprawny JSON, pusty katalog i wadliwy payload. Zdefiniować pusty katalog jako powód użycia fallbacku.
-- [ ] Uruchomić `npm test -- src/data`.
+- [x] Testować unikalność ID stworzeń, bohaterów i presetów; referencje obu stron oraz zgodność z rulesetem.
+- [x] Sprawdzać rzeczywisty plik publiczny i fallback, a nie wyłącznie fixture testowe. Wymagać spójności treści dla tej samej wersji.
+- [x] W parserze odrzucać nieznane ID, duplikaty, niedostępne frakcje i liczby ponad limity H3-03; nie zastępować błędnego wyboru pierwszą jednostką.
+- [x] Dodać przypadki fetch: HTTP error, odrzucona obietnica, niepoprawny JSON, pusty katalog i wadliwy payload. Zdefiniować pusty katalog jako powód użycia fallbacku.
+- [x] Uruchomić `npm test -- src/data`.
 
 **Odbiór:** każdy oferowany preset wskazuje dokładnie istniejące, dostępne jednostki; wadliwe dane uruchamiają przewidywalny fallback.
 
@@ -109,11 +109,11 @@ expect(simulateMany({ ...config, simulations: 3 }).draws).toBe(3)
 
 **Pliki:** `package.json`, `src/data/presets.ts`, `presets.test.ts`, `README.md`, `.github/workflows/deploy-firebase.yml`; nowe `.github/workflows/ci.yml`, `.github/workflows/deploy-pages.yml` przy wyborze Pages.
 
-- [ ] Przyjąć Pages jako proponowany kierunek zgodny z lokalną intencją projektu; przed wdrożeniem ustalić faktyczny stan zdalny. Obecny checkout nie dowodzi, że migracja została wykonana.
-- [ ] Dla Pages dodać `build:pages` wykonujący `tsc -b && vite build --base=/h3-inspired-combat-sim/`; pobierać presety względem `import.meta.env.BASE_URL`.
-- [ ] Dodać CI dla pull requestów: npm ci → test → lint → build. Przygotować Pages początkowo jako workflow ręczny; Firebase pozostawić wyłącznie ręczny, aby uniknąć dwóch automatycznych publikacji.
-- [ ] Sprawdzić lokalnie bundle w podkatalogu: dokument, JS, favicon i JSON presetów ładują się poprawnie. Test fetchera musi oczekiwać prefiksu projektu dla wariantu Pages.
-- [ ] Ujednolicić README z faktycznie istniejącymi skryptami. Nie deklarować aktywnej strony ani obsługi `VITE_PRESET_API_URL`, dopóki nie zostaną zweryfikowane lub wdrożone.
+- [x] Przyjąć Pages jako proponowany kierunek zgodny z lokalną intencją projektu; przed wdrożeniem ustalić faktyczny stan zdalny. Obecny checkout nie dowodzi, że migracja została wykonana.
+- [x] Dla Pages dodać `build:pages` wykonujący `tsc -b && vite build --base=/h3-inspired-combat-sim/`; pobierać presety względem `import.meta.env.BASE_URL`.
+- [x] Dodać CI dla pull requestów: npm ci → test → lint → build. Pages publikuje na push do main zgodnie z późniejszym poleceniem użytkownika; Firebase pozostaje wyłącznie ręczny.
+- [x] Sprawdzić lokalnie bundle w podkatalogu: dokument, JS, favicon i JSON presetów ładują się poprawnie. Test fetchera musi oczekiwać prefiksu projektu dla wariantu Pages.
+- [x] Ujednolicić README z faktycznie istniejącymi skryptami. Nie deklarować aktywnej strony ani obsługi `VITE_PRESET_API_URL`, dopóki nie zostaną zweryfikowane lub wdrożone.
 
 **Odbiór:** jedna jasno opisana ścieżka wydania; testy PR nie wymagają sekretów hostingu; lokalny test podkatalogu nie korzysta przypadkiem z fallbacku.
 
@@ -215,3 +215,9 @@ Rozpocząć od H3-01, następnie H3-02 i H3-03. H3-04 oraz H3-05 zamykają przyg
 3. H3-07 i zakres mobilny H3-09: log PL/EN ze stratami i rozwijanym wyliczeniem obrażeń, zwijane rundy, informacja o pojedynczej próbce, kompaktowe wyniki na telefonie, opis presetu — wykonane. Podział wszystkich paneli na komponenty i rozszerzenie katalogu/filtrów presetów pozostają poza tym pakietem.
 
 Weryfikacja lokalna: 77 testów, lint, build:pages oraz test przeglądarkowy dla 360/768/1280 px. Skrypt scripts/smoke-ui.mjs pozwala odtworzyć test dla lokalnej lub publicznej strony. Dalsza rekomendacja: integralność katalogu i presetów (H3-04), potem bezpieczny generator (H3-06) i przeniesienie dużych serii do Web Workera (H3-08).
+
+## Postęp — 2026-11-13
+
+H3-04 ukończone: parser odrzuca nieznane i niedostępne ID, powtórzone ID presetów, puste katalogi oraz wartości poza wspólnymi limitami. Testy obejmują rzeczywisty JSON, fallback, unikalność katalogów, błędy pobierania i zastosowanie fallbacku w interfejsie. Metadane wskazują plik względem bazowego URL aplikacji.
+
+H3-05: dodano osobny workflow Verify changes dla pull requestów do main i ręcznego uruchomienia; wykonuje npm ci, testy, lint i build:pages, bez publikacji i sekretów hostingu. Kontrole lokalne: 97 testów, lint i build:pages. Następny punkt: H3-06 — bezpieczny generator danych i ręczne korekty.

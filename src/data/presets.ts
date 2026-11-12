@@ -5,6 +5,9 @@ import type {
   LocalizedText,
   Ruleset,
 } from '../types'
+import { creatures } from './creatures'
+import { heroes } from './heroes'
+import { isValidNumber, type NumericField } from '../simulation/validation'
 
 const PRESET_PATH = 'data/presets.v1.json'
 
@@ -104,11 +107,11 @@ function isRuleset(value: unknown): value is Ruleset {
 }
 
 function isPositiveInteger(value: unknown): value is number {
-  return typeof value === 'number' && Number.isInteger(value) && value > 0
+  return typeof value === 'number' && Number.isSafeInteger(value) && value > 0
 }
 
-function isNonNegativeInteger(value: unknown): value is number {
-  return typeof value === 'number' && Number.isInteger(value) && value >= 0
+function isPresetNumber(value: unknown, field: NumericField): value is number {
+  return typeof value === 'number' && isValidNumber(value, field)
 }
 
 function parseLocalizedText(value: unknown): LocalizedText | null {
@@ -122,13 +125,15 @@ function parseLocalizedText(value: unknown): LocalizedText | null {
   }
 }
 
-function parsePresetSide(value: unknown): BattlePresetSide | null {
+function parsePresetSide(value: unknown, ruleset: Ruleset): BattlePresetSide | null {
   if (!isRecord(value)) return null
 
   if (
     typeof value.creatureId !== 'string' ||
     typeof value.heroId !== 'string' ||
-    !isPositiveInteger(value.count)
+    !isPresetNumber(value.count, 'count') ||
+    !creatures.some(creature => creature.id === value.creatureId && creature.rulesets.includes(ruleset)) ||
+    !heroes.some(hero => hero.id === value.heroId && hero.rulesets.includes(ruleset))
   ) {
     return null
   }
@@ -141,23 +146,24 @@ function parsePresetSide(value: unknown): BattlePresetSide | null {
 }
 
 function parsePreset(value: unknown): BattlePreset | null {
-  if (!isRecord(value)) return null
+  if (!isRecord(value) || !isRuleset(value.ruleset)) return null
 
   const label = parseLocalizedText(value.label)
   const description = value.description === undefined ? undefined : parseLocalizedText(value.description)
-  const sideA = parsePresetSide(value.sideA)
-  const sideB = parsePresetSide(value.sideB)
+  const sideA = parsePresetSide(value.sideA, value.ruleset)
+  const sideB = parsePresetSide(value.sideB, value.ruleset)
 
   if (
     typeof value.id !== 'string' ||
+    !value.id.trim() ||
     !label ||
     description === null ||
     !isRuleset(value.ruleset) ||
     !sideA ||
     !sideB ||
-    !isPositiveInteger(value.weeks) ||
-    !isNonNegativeInteger(value.startDistance) ||
-    !isPositiveInteger(value.simulationCount)
+    !isPresetNumber(value.weeks, 'weeks') ||
+    !isPresetNumber(value.startDistance, 'startDistance') ||
+    !isPresetNumber(value.simulationCount, 'simulations')
   ) {
     return null
   }
@@ -180,18 +186,19 @@ export function parsePresetPayload(value: unknown): BattlePresetPayload | null {
     !isRecord(value) ||
     !isPositiveInteger(value.version) ||
     typeof value.updatedAt !== 'string' ||
-    !Array.isArray(value.presets)
+    !Array.isArray(value.presets) ||
+    value.presets.length === 0
   ) {
     return null
   }
 
-  const presets = value.presets.map(parsePreset)
-  if (presets.some((preset) => preset === null)) return null
+  const presets = value.presets.map(parsePreset).filter((preset): preset is BattlePreset => preset !== null)
+  if (presets.length !== value.presets.length || new Set(presets.map(preset => preset.id)).size !== presets.length) return null
 
   return {
     version: value.version,
     updatedAt: value.updatedAt,
-    presets: presets as BattlePreset[],
+    presets,
   }
 }
 

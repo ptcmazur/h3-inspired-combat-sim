@@ -193,4 +193,24 @@ describe('App', () => {
     expect(screen.getByRole('spinbutton', { name: /simulations/i })).toHaveValue(25)
     expect(screen.getByRole('spinbutton', { name: /start distance/i })).toHaveValue(9)
   })
+
+  it('offers the bundled catalog when a remote preset references an unknown creature', async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ ...publicPresetPayload, presets: [{
+        ...publicPresetPayload.presets[0],
+        sideA: { ...publicPresetPayload.presets[0].sideA, creatureId: 'missing' },
+      }] }),
+    }))
+    render(<App />)
+    await screen.findByRole('option', { name: 'Castle weekly growth vs Inferno weekly growth' })
+    expect(screen.queryByRole('option', { name: 'Test Castle vs Cove' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /apply preset/i }))
+    const quantities = screen.getAllByRole('spinbutton', { name: /quantity/i })
+    expect(quantities[0]).toHaveValue(84)
+    expect(quantities[1]).toHaveValue(90)
+    await user.click(screen.getByRole('button', { name: /run simulation/i }))
+    expect(screen.getByTestId('sticky-results')).toBeInTheDocument()
+  })
 })

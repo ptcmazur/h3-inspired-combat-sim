@@ -20,6 +20,8 @@ Open `http://127.0.0.1:5173/`.
 
 ## Verification
 
+Pull requests to `main` run `.github/workflows/ci.yml` (tests, lint and Pages build) without deploying or requiring hosting secrets. The same verification can be started manually from GitHub Actions.
+
 ```powershell
 npm test
 npm run lint
